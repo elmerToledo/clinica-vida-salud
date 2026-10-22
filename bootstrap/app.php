@@ -13,7 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias(['rol' => \App\Http\Middleware\RolMiddleware::class]);
-	$middleware->web(append: [\App\Http\Middleware\UsuarioActivo::class]);
+        $middleware->web(append: [\App\Http\Middleware\UsuarioActivo::class]);
+        // Detrás del balanceador de la nube (HTTPS): confiar en los encabezados X-Forwarded-*.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

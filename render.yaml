@@ -1,0 +1,39 @@
+# Blueprint de Render: servidor web (Docker) + base de datos PostgreSQL.
+services:
+  - type: web
+    name: clinica-vida-salud
+    runtime: docker
+    plan: free
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: Clínica Vida Salud
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false   # lo pegas tú en Render (php artisan key:generate --show)
+      - key: APP_LOCALE
+        value: es
+      - key: APP_FALLBACK_LOCALE
+        value: es
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: clinica-db
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: SEED_DEMO
+        value: "true"
+
+databases:
+  - name: clinica-db
+    plan: free
+    databaseName: clinica_vida_salud
