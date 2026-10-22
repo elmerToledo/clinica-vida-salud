@@ -1,7 +1,7 @@
 <?php
 
-it('returns a successful response', function () {
-    $response = $this->get('/');
+test('la raíz lleva al inicio y, sin sesión, al login', function () {
+    $this->get('/')->assertRedirect('/dashboard');
 
-    $response->assertStatus(200);
+    $this->followingRedirects()->get('/')->assertOk()->assertSee('Iniciar sesión');
 });

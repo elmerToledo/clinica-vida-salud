@@ -24,7 +24,8 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming registration request.
+     * Registro público: la cuenta siempre se crea con rol Paciente (RN12).
+     * El rol no se toma del formulario, así nadie puede elegirse un rol con más permisos.
      *
      * @throws ValidationException
      */
@@ -38,8 +39,11 @@ class RegisteredUserController extends Controller
 
         $user = User::create([
             'name' => $request->name,
+            'usuario' => User::generarUsuario(strstr($request->email, '@', true) ?: $request->email),
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'rol' => 'paciente',
+            'activo' => true,
         ]);
 
         event(new Registered($user));

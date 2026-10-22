@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Inicio de sesión (CU01): se acepta el usuario o el correo en el campo "email".
+ */
 class LoginRequest extends FormRequest
 {
     /**
@@ -28,13 +31,14 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ];
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Intenta autenticar. Solo entran cuentas activas (RF01).
+     * Ante cualquier error se muestra el mismo mensaje, sin revelar qué dato falló.
      *
      * @throws ValidationException
      */
@@ -42,7 +46,16 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $acceso = Str::lower(trim((string) $this->input('email')));
+        $campo = filter_var($acceso, FILTER_VALIDATE_EMAIL) ? 'email' : 'usuario';
+
+        $credenciales = [
+            $campo => $acceso,
+            'password' => (string) $this->input('password'),
+            'activo' => true,
+        ];
+
+        if (! Auth::attempt($credenciales, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

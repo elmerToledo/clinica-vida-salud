@@ -26,10 +26,13 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'usuario' => 'u' . Str::lower(Str::random(10)),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'rol' => 'paciente',
+            'activo' => true,
         ];
     }
 
@@ -41,5 +44,31 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function administrador(): static
+    {
+        return $this->state(fn () => ['rol' => 'administrador']);
+    }
+
+    public function recepcionista(): static
+    {
+        return $this->state(fn () => ['rol' => 'recepcionista']);
+    }
+
+    public function medico(): static
+    {
+        return $this->state(fn () => ['rol' => 'medico']);
+    }
+
+    public function paciente(): static
+    {
+        return $this->state(fn () => ['rol' => 'paciente']);
+    }
+
+    /** Cuenta desactivada por el Administrador. */
+    public function inactivo(): static
+    {
+        return $this->state(fn () => ['activo' => false]);
     }
 }

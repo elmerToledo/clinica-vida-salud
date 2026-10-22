@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Especialidad;
+use App\Models\HorarioAtencion;
+use App\Models\Medico;
+use App\Models\Paciente;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -8,9 +12,9 @@ use Tests\TestCase;
 | Test Case
 |--------------------------------------------------------------------------
 |
-| The closure you provide to your test functions is always bound to a specific PHPUnit test
-| case class. By default, that class is "PHPUnit\Framework\TestCase". Of course, you may
-| need to change it using the "pest()" function to bind a different classes or traits.
+| Todas las pruebas de la carpeta Feature usan TestCase y una base de datos
+| limpia en cada prueba (RefreshDatabase). La configuración de pruebas está en
+| phpunit.xml (base SQLite en memoria; no toca PostgreSQL).
 |
 */
 
@@ -20,31 +24,65 @@ pest()->extend(TestCase::class)
 
 /*
 |--------------------------------------------------------------------------
-| Expectations
+| Funciones de apoyo
 |--------------------------------------------------------------------------
 |
-| When you're writing tests, you often need to check that values meet certain conditions. The
-| "expect()" function gives you access to a set of "expectations" methods that you can use
-| to assert different things. Of course, you may extend the Expectation API at any time.
+| Crean datos de ejemplo directamente en la base para preparar cada prueba.
 |
 */
 
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
-});
-
-/*
-|--------------------------------------------------------------------------
-| Functions
-|--------------------------------------------------------------------------
-|
-| While Pest is very powerful out-of-the-box, you may have some testing code specific to your
-| project that you don't want to repeat in every file. Here you can also expose helpers as
-| global functions to help you to reduce the number of lines of code in your test files.
-|
-*/
-
-function something()
+/** Crea un paciente de prueba; los datos pueden sobrescribirse con $extra. */
+function crearPaciente(array $extra = []): Paciente
 {
-    // ..
+    static $n = 0;
+    $n++;
+
+    return Paciente::create(array_merge([
+        'ci' => (string) (1000000 + $n),
+        'nombres' => 'Paciente',
+        'apellidos' => 'Prueba' . $n,
+        'fecha_nacimiento' => '1990-01-15',
+        'sexo' => 'F',
+        'telefono' => '71110000',
+        'activo' => true,
+    ], $extra));
+}
+
+/** Crea una especialidad de prueba. */
+function crearEspecialidad(string $nombre = 'Medicina general', bool $activa = true): Especialidad
+{
+    return Especialidad::create(['nombre' => $nombre, 'activo' => $activa]);
+}
+
+/** Crea un médico de prueba con las especialidades indicadas (instancias de Especialidad). */
+function crearMedico(array $extra = [], array $especialidades = []): Medico
+{
+    static $n = 0;
+    $n++;
+
+    $medico = Medico::create(array_merge([
+        'registro_profesional' => 'RP-' . (5000 + $n),
+        'nombres' => 'Medico',
+        'apellidos' => 'Prueba' . $n,
+        'activo' => true,
+    ], $extra));
+
+    if ($especialidades) {
+        $medico->especialidades()->sync(array_map(fn ($e) => $e->id, $especialidades));
+    }
+
+    return $medico;
+}
+
+/** Crea un horario de atención de prueba (dia: 1 = lunes ... 7 = domingo). */
+function crearHorario(Medico $medico, int $dia, string $inicio, string $fin, int $duracion = 30, bool $activo = true): HorarioAtencion
+{
+    return HorarioAtencion::create([
+        'medico_id' => $medico->id,
+        'dia_semana' => $dia,
+        'hora_inicio' => $inicio,
+        'hora_fin' => $fin,
+        'duracion_cita_min' => $duracion,
+        'activo' => $activo,
+    ]);
 }
