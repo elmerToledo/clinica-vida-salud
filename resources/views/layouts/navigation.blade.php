@@ -1,103 +1,79 @@
-{{-- Barra de navegación: las opciones dependen del rol (App\Support\Menu). Responsive: menú de hamburguesa bajo 1024 px. --}}
-@php($menu = \App\Support\Menu::para(Auth::user()))
+{{-- Menú lateral (escritorio) y barra superior con menú a pantalla completa (celular y tablet).
+     Las opciones dependen del rol (App\Support\Menu). --}}
+@php
+    $menu = \App\Support\Menu::para(Auth::user());
+    $iconos = ['dashboard' => 'home', 'usuarios.index' => 'lock', 'pacientes.index' => 'users', 'medicos.index' => 'stethoscope', 'especialidades.index' => 'heart', 'horarios.index' => 'clock'];
+    $inicial = mb_strtoupper(mb_substr(Auth::user()->name, 0, 1));
+@endphp
 
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-200">
-    <!-- Menú principal -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Marca -->
-                <a href="{{ route('dashboard') }}" class="shrink-0 flex items-center gap-2 font-semibold text-teal-700">
-                    <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></svg>
-                    <span>Vida Salud</span>
+<div x-data="{ abierto: false }" class="lg:contents">
+    <!-- Barra superior (celular y tablet) -->
+    <header class="lg:hidden flex items-center justify-between bg-deep px-4 py-2 text-white">
+        <a href="{{ route('dashboard') }}"><x-logo-aurora :light="true" class="[&_svg]:h-8 [&_svg]:w-8" /></a>
+        <button type="button" @click="abierto = true" aria-label="Abrir menú" class="flex h-12 w-12 items-center justify-center rounded-lg hover:bg-white/10">
+            <x-icono nombre="menu" class="h-7 w-7" />
+        </button>
+    </header>
+
+    <!-- Menú a pantalla completa (celular y tablet) -->
+    <div x-show="abierto" x-cloak class="lg:hidden fixed inset-0 z-50 flex flex-col overflow-y-auto bg-deep p-4 pb-6 text-white" role="dialog" aria-label="Menú principal">
+        <div class="flex items-center justify-between pb-2">
+            <span class="font-display text-lg">Menú</span>
+            <button type="button" @click="abierto = false" aria-label="Cerrar menú" class="flex h-12 w-12 items-center justify-center rounded-lg hover:bg-white/10">
+                <x-icono nombre="x" class="h-7 w-7" />
+            </button>
+        </div>
+        <nav class="flex flex-col gap-1" aria-label="Menú principal">
+            @foreach ($menu as $item)
+                @php($activo = request()->routeIs($item['patron']))
+                <a href="{{ route($item['ruta']) }}" @if ($activo) aria-current="page" @endif
+                   class="flex min-h-[52px] items-center gap-3 rounded-xl px-3.5 text-[17px] {{ $activo ? 'bg-ambar-claro font-bold text-deep' : 'font-medium text-[#e1eeef] hover:bg-white/10' }}">
+                    <x-icono :nombre="$iconos[$item['ruta']] ?? 'home'" class="h-5 w-5" /> {{ $item['etiqueta'] }}
                 </a>
-
-                <!-- Opciones (escritorio) -->
-                <div class="hidden lg:flex lg:space-x-6 lg:ms-8">
-                    @foreach ($menu as $item)
-                        <x-nav-link :href="route($item['ruta'])" :active="request()->routeIs($item['patron'])">
-                            {{ $item['etiqueta'] }}
-                        </x-nav-link>
-                    @endforeach
-                </div>
+            @endforeach
+        </nav>
+        <div class="mt-auto flex items-center justify-between gap-3 border-t border-white/15 pt-4">
+            <div class="min-w-0">
+                <div class="truncate text-[15px] font-semibold">{{ Auth::user()->name }}</div>
+                <a href="{{ route('profile.edit') }}" class="text-sm text-[#bbd6d9] underline">Mi cuenta</a>
             </div>
-
-            <!-- Menú del usuario (escritorio) -->
-            <div class="hidden lg:flex lg:items-center lg:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div class="text-start">
-                                <div class="text-gray-800">{{ Auth::user()->name }}</div>
-                                <div class="text-xs text-teal-700">{{ Auth::user()->rol_nombre }}</div>
-                            </div>
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            Mi cuenta
-                        </x-dropdown-link>
-
-                        <!-- CU02: cerrar sesión -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault(); this.closest('form').submit();">
-                                Cerrar sesión
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
-
-            <!-- Botón de hamburguesa (celular y tablet) -->
-            <div class="-me-2 flex items-center lg:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out" aria-label="Abrir menú">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="flex min-h-[44px] items-center rounded-lg border border-white/40 px-4 text-sm font-semibold hover:bg-white/10">Cerrar sesión</button>
+            </form>
         </div>
     </div>
 
-    <!-- Menú desplegable (celular y tablet) -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden lg:hidden">
-        <div class="pt-2 pb-3 space-y-1">
+    <!-- Menú lateral (escritorio) -->
+    <aside class="hidden lg:flex lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 flex-col gap-7 bg-deep px-4 py-7 text-white">
+        <a href="{{ route('dashboard') }}" class="px-2"><x-logo-aurora :light="true" /></a>
+
+        <nav class="flex flex-col gap-1" aria-label="Menú principal">
             @foreach ($menu as $item)
-                <x-responsive-nav-link :href="route($item['ruta'])" :active="request()->routeIs($item['patron'])">
-                    {{ $item['etiqueta'] }}
-                </x-responsive-nav-link>
+                @php($activo = request()->routeIs($item['patron']))
+                <a href="{{ route($item['ruta']) }}" @if ($activo) aria-current="page" @endif
+                   class="flex items-center gap-3 rounded-[10px] p-3 text-[15px] {{ $activo ? 'bg-ambar-claro font-bold text-deep' : 'font-medium text-[#e1eeef] hover:bg-white/10' }}">
+                    <x-icono :nombre="$iconos[$item['ruta']] ?? 'home'" class="h-5 w-5" /> {{ $item['etiqueta'] }}
+                </a>
             @endforeach
-        </div>
+        </nav>
 
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-                <div class="text-xs text-teal-700">{{ Auth::user()->rol_nombre }}</div>
+        <div class="mt-auto border-t border-white/15 pt-4">
+            <div class="flex items-center gap-3 px-2">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ambar font-bold text-tinta">{{ $inicial }}</div>
+                <div class="min-w-0">
+                    <div class="truncate text-sm font-semibold">{{ Auth::user()->name }}</div>
+                    <div class="text-xs text-[#bbd6d9]">{{ Auth::user()->rol_nombre }}</div>
+                </div>
             </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    Mi cuenta
-                </x-responsive-nav-link>
-
+            <div class="mt-3 flex flex-col gap-1 text-sm">
+                <a href="{{ route('profile.edit') }}" class="rounded-lg px-2 py-2 text-[#e1eeef] hover:bg-white/10">Mi cuenta</a>
+                <!-- CU02: cerrar sesión -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault(); this.closest('form').submit();">
-                        Cerrar sesión
-                    </x-responsive-nav-link>
+                    <button type="submit" class="w-full rounded-lg px-2 py-2 text-left text-[#e1eeef] hover:bg-white/10">Cerrar sesión</button>
                 </form>
             </div>
         </div>
-    </div>
-</nav>
+    </aside>
+</div>

@@ -7,7 +7,7 @@ services:
     healthCheckPath: /up
     envVars:
       - key: APP_NAME
-        value: Clínica Vida Salud
+        value: Clínica Santa Aurora
       - key: APP_ENV
         value: production
       - key: APP_DEBUG

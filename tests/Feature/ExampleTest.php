@@ -1,7 +1,15 @@
 <?php
 
-test('la raíz lleva al inicio y, sin sesión, al login', function () {
-    $this->get('/')->assertRedirect('/dashboard');
+use App\Models\User;
 
-    $this->followingRedirects()->get('/')->assertOk()->assertSee('Iniciar sesión');
+test('la raíz muestra la página pública de la clínica', function () {
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('Clínica Santa Aurora')
+        ->assertSee('Iniciar sesión')
+        ->assertSee('Reservar cita');
+});
+
+test('quien ya inició sesión pasa de la raíz al inicio del sistema', function () {
+    $this->actingAs(User::factory()->create())->get('/')->assertRedirect('/dashboard');
 });

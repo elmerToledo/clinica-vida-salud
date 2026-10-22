@@ -11,7 +11,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Datos de demostración de la Clínica Vida Salud.
+ * Datos de demostración de la Clínica Santa Aurora.
  *
  * Ejecutar con:  php artisan db:seed --class=ClinicaSeeder
  *

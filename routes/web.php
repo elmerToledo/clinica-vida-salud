@@ -3,14 +3,15 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\HorarioAtencionController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MedicoController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
-// La raíz lleva al inicio; si no hay sesión, el middleware "auth" redirige al login.
-Route::redirect('/', '/dashboard');
+// Página pública de la clínica; quien ya tiene sesión pasa directo al inicio del sistema.
+Route::get('/', LandingController::class)->name('inicio');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');

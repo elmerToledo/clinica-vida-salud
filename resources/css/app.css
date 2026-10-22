@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html { scroll-behavior: smooth; }
+    body { background-color: #f6f4ef; color: #16202e; }
+    h1, h2, h3 { font-family: Fraunces, Georgia, serif; }
+}
+
+/* Botones de la clínica (landing, login y pantallas del sistema) */
+@layer components {
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+        min-height: 48px; padding: 0 1.4rem; border-radius: 12px;
+        font-weight: 600; font-size: .95rem;
+        transition: background-color .2s, transform .2s, color .2s;
+    }
+    .btn:focus-visible { outline: 3px solid #e8963e; outline-offset: 2px; }
+    .btn-primary { background: #0b6b74; color: #fff; }
+    .btn-primary:hover { background: #083f45; }
+    .btn-amber { background: #e8963e; color: #16202e; }
+    .btn-amber:hover { background: #f4d9b5; }
+    .btn-ghost-light { border: 1.5px solid rgb(246 244 239 / .5); color: #f6f4ef; }
+    .btn-ghost-light:hover { background: rgb(246 244 239 / .12); }
+    .btn-outline { border: 1.5px solid #0b6b74; color: #0b6b74; }
+    .btn-outline:hover { background: rgb(11 107 116 / .08); }
+}
+
+/* Carrusel automático de fotos (se detiene al pasar el mouse o si el usuario pide menos movimiento) */
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee { animation: marquee 45s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .marquee { animation: none; } }
+
+/* Título de cada pantalla interna */
+.cabecera h2 { font-family: Fraunces, Georgia, serif; font-size: 1.75rem; line-height: 1.2; font-weight: 600; color: #16202e; }
+
+[x-cloak] { display: none !important; }

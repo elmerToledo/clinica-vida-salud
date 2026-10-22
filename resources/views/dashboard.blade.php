@@ -8,7 +8,7 @@
             <!-- Bienvenida -->
             <div class="bg-white shadow sm:rounded-lg p-6 border-l-4 border-teal-600">
                 <h3 class="text-lg font-semibold text-gray-900">Bienvenido(a), {{ $usuario->name }}</h3>
-                <p class="mt-1 text-sm text-gray-600">Ingresó como <strong>{{ $usuario->rol_nombre }}</strong> a la Clínica Vida Salud.</p>
+                <p class="mt-1 text-sm text-gray-600">Ingresó como <strong>{{ $usuario->rol_nombre }}</strong> a la Clínica Santa Aurora.</p>
             </div>
 
             <!-- Resumen -->
