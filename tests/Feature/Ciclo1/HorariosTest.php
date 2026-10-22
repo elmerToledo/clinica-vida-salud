@@ -128,10 +128,12 @@ it('muestra a la recepcionista los horarios, filtrados por médico (CU21)', func
     crearHorario($otro, 2, '09:00', '13:00');
     $recepcion = User::factory()->recepcionista()->create();
 
-    $this->actingAs($recepcion)->get('/horarios')->assertOk()->assertSee('Alberto')->assertSee('Beatriz');
+    // Se busca "Nombres Apellidos" (como sale en la tarjeta del médico), porque la lista
+    // desplegable del filtro muestra a todos los médicos con el orden "Apellidos, Nombres".
+    $this->actingAs($recepcion)->get('/horarios')->assertOk()->assertSee('Alberto Prueba')->assertSee('Beatriz Prueba');
 
     $this->actingAs($recepcion)->get('/horarios?medico=' . $otro->id)
-        ->assertOk()->assertSee('Beatriz')->assertDontSee('Alberto');
+        ->assertOk()->assertSee('Beatriz Prueba')->assertDontSee('Alberto Prueba');
 
     $this->actingAs($recepcion)->post('/horarios', datosHorario($this->medico))->assertForbidden();
 });
