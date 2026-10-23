@@ -10,6 +10,9 @@ test('la raíz muestra la página pública de la clínica', function () {
         ->assertSee('Reservar cita');
 });
 
-test('quien ya inició sesión pasa de la raíz al inicio del sistema', function () {
-    $this->actingAs(User::factory()->create())->get('/')->assertRedirect('/dashboard');
+test('quien ya inició sesión ve la página pública con la opción de continuar o cerrar sesión', function () {
+    $this->actingAs(User::factory()->create())->get('/')
+        ->assertOk()
+        ->assertSee('Tiene una sesión abierta')
+        ->assertSee('Continuar al panel');
 });

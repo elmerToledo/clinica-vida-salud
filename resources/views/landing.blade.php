@@ -56,6 +56,21 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased bg-fondo text-tinta">
+        @auth
+            <!-- Sesión abierta: se pregunta si continúa o cierra sesión -->
+            <div class="bg-deep text-crema" role="region" aria-label="Sesión abierta">
+                <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-sm">Tiene una sesión abierta como <strong>{{ auth()->user()->name }}</strong>.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{{ route('dashboard') }}" class="btn btn-amber !min-h-10">Continuar al panel</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-ghost-light !min-h-10">Cerrar sesión</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endauth
 
     {{-- Aviso superior --}}
     <div class="bg-deep text-crema text-sm">
