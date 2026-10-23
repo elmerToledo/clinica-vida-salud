@@ -2,11 +2,11 @@
 @props(['tipo' => 'primario', 'href' => null])
 
 @php
-    $base = 'inline-flex items-center justify-center px-4 min-h-[44px] rounded-lg font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition ease-in-out duration-150';
+    $base = 'inline-flex items-center justify-center gap-2 px-6 min-h-12 rounded-full font-semibold text-base whitespace-nowrap transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-ambar/50';
     $variantes = [
-        'primario' => 'bg-primary text-white hover:bg-deep focus:ring-primary',
-        'secundario' => 'bg-white border border-gray-300 text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-primary',
-        'peligro' => 'bg-red-700 text-white hover:bg-red-600 focus:ring-red-500',
+        'primario' => 'bg-ambar text-tinta hover:brightness-105 hover:-translate-y-0.5',
+        'secundario' => 'border border-tinta/25 bg-transparent text-tinta hover:bg-tinta/5',
+        'peligro' => 'bg-red-700 text-white hover:bg-red-600',
     ];
     $clases = $base . ' ' . ($variantes[$tipo] ?? $variantes['primario']);
 @endphp

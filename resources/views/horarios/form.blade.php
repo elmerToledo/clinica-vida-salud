@@ -2,7 +2,7 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2>
             {{ $editando ? 'Modificar horario de atención' : 'Nuevo horario de atención' }}
         </h2>
     </x-slot>
@@ -10,7 +10,7 @@
     <div class="py-6 sm:py-10">
         <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <form id="form-horario" method="POST" action="{{ $editando ? route('horarios.update', $horario) : route('horarios.store') }}"
-                  class="bg-white shadow sm:rounded-lg p-4 sm:p-8 space-y-5">
+                  class="card-soft p-4 sm:p-8 space-y-5">
                 @csrf
                 @if ($editando)
                     @method('PUT')

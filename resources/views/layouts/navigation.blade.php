@@ -45,14 +45,14 @@
     </div>
 
     <!-- Menú lateral (escritorio) -->
-    <aside class="hidden lg:flex lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 flex-col gap-7 bg-deep px-4 py-7 text-white">
+    <aside class="hidden lg:flex lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:shrink-0 flex-col gap-7 bg-deep px-4 py-7 text-white">
         <a href="{{ route('dashboard') }}" class="px-2"><x-logo-aurora :light="true" /></a>
 
         <nav class="flex flex-col gap-1" aria-label="Menú principal">
             @foreach ($menu as $item)
                 @php($activo = request()->routeIs($item['patron']))
                 <a href="{{ route($item['ruta']) }}" @if ($activo) aria-current="page" @endif
-                   class="flex items-center gap-3 rounded-[10px] p-3 text-[15px] {{ $activo ? 'bg-ambar-claro font-bold text-deep' : 'font-medium text-[#e1eeef] hover:bg-white/10' }}">
+                   class="flex items-center gap-3 rounded-2xl px-4 py-3 text-[15px] {{ $activo ? 'bg-ambar-claro font-bold text-deep' : 'font-medium text-[#e1eeef] hover:bg-white/10' }}">
                     <x-icono :nombre="$iconos[$item['ruta']] ?? 'home'" class="h-5 w-5" /> {{ $item['etiqueta'] }}
                 </a>
             @endforeach

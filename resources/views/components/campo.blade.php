@@ -2,7 +2,7 @@
 @props(['name', 'label', 'type' => 'text', 'value' => null, 'required' => false, 'ayuda' => null])
 
 <div {{ $attributes->only('class') }}>
-    <label for="{{ $name }}" class="block font-medium text-sm text-gray-700">
+    <label for="{{ $name }}" class="block font-semibold text-sm text-tinta">
         {{ $label }}@if ($required)<span class="text-red-600"> *</span>@endif
     </label>
     <input
@@ -11,7 +11,7 @@
         type="{{ $type }}"
         @if ($type !== 'password') value="{{ old($name, $value) }}" @endif
         @required($required)
-        {{ $attributes->except('class')->merge(['class' => 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500']) }}
+        {{ $attributes->except('class')->merge(['class' => 'mt-1 campo']) }}
     >
     @if ($ayuda)
         <p class="mt-1 text-xs text-gray-500">{{ $ayuda }}</p>

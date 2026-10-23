@@ -10,7 +10,7 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..900;1,9..144,500..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -20,10 +20,10 @@
             @include('layouts.navigation')
 
             <div class="flex-1 min-w-0">
-                <!-- Page Heading -->
+                <!-- Banner con el título de la pantalla -->
                 @isset($header)
-                    <header class="cabecera border-b border-linea bg-white/60">
-                        <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                    <header class="cabecera max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8">
+                        <div class="hero-banner p-6 md:p-10">
                             {{ $header }}
                         </div>
                     </header>
@@ -31,12 +31,12 @@
 
                 <!-- Mensajes de la operación anterior (éxito o error) -->
                 @if (session('exito') || session('error'))
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 space-y-2">
                         @if (session('exito'))
-                            <div role="status" class="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">{{ session('exito') }}</div>
+                            <div role="status" class="rounded-2xl border border-green-200 bg-green-50 p-4 text-[15px] font-medium text-green-800">{{ session('exito') }}</div>
                         @endif
                         @if (session('error'))
-                            <div role="alert" class="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ session('error') }}</div>
+                            <div role="alert" class="rounded-2xl border border-red-200 bg-red-50 p-4 text-[15px] font-medium text-red-800">{{ session('error') }}</div>
                         @endif
                     </div>
                 @endif

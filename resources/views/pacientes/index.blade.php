@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Pacientes</h2>
+            <h2>Registro de <em>pacientes</em></h2>
             <x-boton :href="route('pacientes.create')">Nuevo paciente</x-boton>
         </div>
     </x-slot>
@@ -16,7 +16,7 @@
                 </div>
                 <div>
                     <x-input-label for="estado" value="Estado" />
-                    <select id="estado" name="estado" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                    <select id="estado" name="estado" class="mt-1 campo">
                         <option value="todos" @selected($estado === 'todos')>Todos</option>
                         <option value="activos" @selected($estado === 'activos')>Activos</option>
                         <option value="inactivos" @selected($estado === 'inactivos')>Inactivos</option>
@@ -29,34 +29,34 @@
             </x-filtros>
 
             <x-tabla>
-                <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                <thead class="bg-ambar-claro/40 text-left text-xs font-bold uppercase tracking-wider text-deep">
                     <tr>
-                        <th class="px-4 py-3">Código</th>
-                        <th class="px-4 py-3">CI</th>
-                        <th class="px-4 py-3">Paciente</th>
-                        <th class="px-4 py-3 hidden md:table-cell">Edad</th>
-                        <th class="px-4 py-3 hidden sm:table-cell">Teléfono</th>
-                        <th class="px-4 py-3">Estado</th>
-                        <th class="px-4 py-3 text-right">Acciones</th>
+                        <th class="px-5 py-4">Código</th>
+                        <th class="px-5 py-4">CI</th>
+                        <th class="px-5 py-4">Paciente</th>
+                        <th class="px-5 py-4 hidden md:table-cell">Edad</th>
+                        <th class="px-5 py-4 hidden sm:table-cell">Teléfono</th>
+                        <th class="px-5 py-4">Estado</th>
+                        <th class="px-5 py-4 text-right">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-linea">
                     @forelse ($pacientes as $paciente)
-                        <tr class="{{ $paciente->activo ? '' : 'bg-gray-50 text-gray-500' }}">
-                            <td class="px-4 py-3 whitespace-nowrap">{{ $paciente->codigo }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap">{{ $paciente->ci }}</td>
-                            <td class="px-4 py-3 font-medium">{{ $paciente->apellidos }}, {{ $paciente->nombres }}</td>
-                            <td class="px-4 py-3 hidden md:table-cell">{{ $paciente->fecha_nacimiento->age }} años</td>
-                            <td class="px-4 py-3 hidden sm:table-cell whitespace-nowrap">{{ $paciente->telefono }}</td>
-                            <td class="px-4 py-3"><x-estado-badge :activo="$paciente->activo" /></td>
-                            <td class="px-4 py-3 text-right whitespace-nowrap space-x-3">
-                                <a href="{{ route('pacientes.edit', $paciente) }}" class="font-medium text-teal-700 hover:text-teal-900">Editar</a>
+                        <tr class="{{ $paciente->activo ? '' : 'opacity-60' }}">
+                            <td class="px-5 py-4 whitespace-nowrap">{{ $paciente->codigo }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap">{{ $paciente->ci }}</td>
+                            <td class="px-5 py-4 font-medium">{{ $paciente->apellidos }}, {{ $paciente->nombres }}</td>
+                            <td class="px-5 py-4 hidden md:table-cell">{{ $paciente->fecha_nacimiento->age }} años</td>
+                            <td class="px-5 py-4 hidden sm:table-cell whitespace-nowrap">{{ $paciente->telefono }}</td>
+                            <td class="px-5 py-4"><x-estado-badge :activo="$paciente->activo" /></td>
+                            <td class="px-5 py-4 text-right whitespace-nowrap space-x-1">
+                                <a href="{{ route('pacientes.edit', $paciente) }}" class="accion">Editar</a>
                                 @if (auth()->user()->tieneRol('administrador'))
                                     <form method="POST" action="{{ route('pacientes.estado', $paciente) }}" class="inline"
                                           onsubmit="return confirm('{{ $paciente->activo ? '¿Desactivar este paciente? Su historial se conserva.' : '¿Activar este paciente?' }}');">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="font-medium {{ $paciente->activo ? 'text-red-600 hover:text-red-800' : 'text-green-700 hover:text-green-900' }}">
+                                        <button type="submit" class="accion {{ $paciente->activo ? 'accion-peligro' : 'accion-ok' }}">
                                             {{ $paciente->activo ? 'Desactivar' : 'Activar' }}
                                         </button>
                                     </form>

@@ -2,7 +2,7 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2>
             {{ $editando ? 'Modificar médico ' . $medico->codigo : 'Nuevo médico' }}
         </h2>
     </x-slot>
@@ -10,7 +10,7 @@
     <div class="py-6 sm:py-10">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <form id="form-medico" method="POST" action="{{ $editando ? route('medicos.update', $medico) : route('medicos.store') }}"
-                  class="bg-white shadow sm:rounded-lg p-4 sm:p-8 space-y-5">
+                  class="card-soft p-4 sm:p-8 space-y-5">
                 @csrf
                 @if ($editando)
                     @method('PUT')
@@ -40,7 +40,7 @@
 
                 <!-- Especialidades: al menos una (se valida también en el navegador con el script de abajo) -->
                 <fieldset>
-                    <legend class="block font-medium text-sm text-gray-700">Especialidades <span class="text-red-600">*</span></legend>
+                    <legend class="block font-semibold text-sm text-tinta">Especialidades <span class="text-red-600">*</span></legend>
                     @if ($especialidades->isEmpty())
                         <p class="mt-2 text-sm text-red-700">No hay especialidades activas. Registre una especialidad antes de crear médicos.</p>
                     @else

@@ -9,7 +9,7 @@
             name="{{ $name }}"
             value="1"
             @checked(old($name, $checked) ? true : false)
-            class="mt-0.5 rounded border-gray-300 text-teal-600 shadow-sm focus:ring-teal-500"
+            class="mt-0.5 h-5 w-5 rounded border-gray-400 text-primary shadow-sm focus:ring-primary"
         >
         <span class="text-sm text-gray-700">
             {{ $label }}

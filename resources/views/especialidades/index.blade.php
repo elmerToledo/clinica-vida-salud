@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Especialidades médicas</h2>
+            <h2>Áreas de <em>especialidad</em></h2>
             @if (auth()->user()->tieneRol('administrador'))
                 <x-boton :href="route('especialidades.create')">Nueva especialidad</x-boton>
             @endif
@@ -17,7 +17,7 @@
                 </div>
                 <div>
                     <x-input-label for="estado" value="Estado" />
-                    <select id="estado" name="estado" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                    <select id="estado" name="estado" class="mt-1 campo">
                         <option value="todos" @selected($estado === 'todos')>Todas</option>
                         <option value="activos" @selected($estado === 'activos')>Activas</option>
                         <option value="inactivos" @selected($estado === 'inactivos')>Inactivas</option>
@@ -30,27 +30,27 @@
             </x-filtros>
 
             <x-tabla>
-                <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                <thead class="bg-ambar-claro/40 text-left text-xs font-bold uppercase tracking-wider text-deep">
                     <tr>
-                        <th class="px-4 py-3">Especialidad</th>
-                        <th class="px-4 py-3 hidden md:table-cell">Descripción</th>
-                        <th class="px-4 py-3 hidden sm:table-cell">Médicos activos</th>
-                        <th class="px-4 py-3">Estado</th>
+                        <th class="px-5 py-4">Especialidad</th>
+                        <th class="px-5 py-4 hidden md:table-cell">Descripción</th>
+                        <th class="px-5 py-4 hidden sm:table-cell">Médicos activos</th>
+                        <th class="px-5 py-4">Estado</th>
                         @if (auth()->user()->tieneRol('administrador'))
-                            <th class="px-4 py-3 text-right">Acciones</th>
+                            <th class="px-5 py-4 text-right">Acciones</th>
                         @endif
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-linea">
                     @forelse ($especialidades as $especialidad)
-                        <tr class="{{ $especialidad->activo ? '' : 'bg-gray-50 text-gray-500' }}">
-                            <td class="px-4 py-3 font-medium">{{ $especialidad->nombre }}</td>
-                            <td class="px-4 py-3 hidden md:table-cell">{{ $especialidad->descripcion }}</td>
-                            <td class="px-4 py-3 hidden sm:table-cell">{{ $especialidad->medicos_activos_count }}</td>
-                            <td class="px-4 py-3"><x-estado-badge :activo="$especialidad->activo" /></td>
+                        <tr class="{{ $especialidad->activo ? '' : 'opacity-60' }}">
+                            <td class="px-5 py-4 font-medium">{{ $especialidad->nombre }}</td>
+                            <td class="px-5 py-4 hidden md:table-cell">{{ $especialidad->descripcion }}</td>
+                            <td class="px-5 py-4 hidden sm:table-cell">{{ $especialidad->medicos_activos_count }}</td>
+                            <td class="px-5 py-4"><x-estado-badge :activo="$especialidad->activo" /></td>
                             @if (auth()->user()->tieneRol('administrador'))
-                                <td class="px-4 py-3 text-right whitespace-nowrap space-x-3">
-                                    <a href="{{ route('especialidades.edit', $especialidad) }}" class="font-medium text-teal-700 hover:text-teal-900">Editar</a>
+                                <td class="px-5 py-4 text-right whitespace-nowrap space-x-1">
+                                    <a href="{{ route('especialidades.edit', $especialidad) }}" class="accion">Editar</a>
                                     {{-- CU19: al desactivar se avisa cuántos médicos activos la atienden --}}
                                     <form method="POST" action="{{ route('especialidades.estado', $especialidad) }}" class="inline"
                                           onsubmit="return confirm('{{ $especialidad->activo
@@ -60,7 +60,7 @@
                                               : '¿Activar esta especialidad?' }}');">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="font-medium {{ $especialidad->activo ? 'text-red-600 hover:text-red-800' : 'text-green-700 hover:text-green-900' }}">
+                                        <button type="submit" class="accion {{ $especialidad->activo ? 'accion-peligro' : 'accion-ok' }}">
                                             {{ $especialidad->activo ? 'Desactivar' : 'Activar' }}
                                         </button>
                                     </form>
