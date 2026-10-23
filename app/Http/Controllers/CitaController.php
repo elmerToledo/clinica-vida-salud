@@ -6,6 +6,7 @@ use App\Http\Requests\CitaRequest;
 use App\Models\Cita;
 use App\Models\Medico;
 use App\Models\Paciente;
+use App\Models\User;
 use App\Services\CitaService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -111,6 +112,128 @@ class CitaController extends Controller
             'soloPropias' => $soloPropias,
             'puedeRegistrar' => $usuario->tieneRol('recepcionista'),
         ]);
+    }
+
+    /** Detalle de una cita con las acciones que corresponden al rol y al estado. */
+    public function show(Request $request, Cita $cita): View
+    {
+        $usuario = $request->user();
+        $this->autorizarVer($cita, $usuario);
+
+        $cita->load(['paciente', 'medico', 'especialidad', 'creador']);
+        $llego = $cita->fecha->toDateString() <= $this->citas->hoy();
+
+        return view('citas.show', [
+            'cita' => $cita,
+            'puedeGestionar' => $usuario->tieneRol('recepcionista') && $cita->vigente,
+            'puedeCancelarPropia' => $usuario->tieneRol('paciente') && $cita->vigente,
+            'puedeAtender' => $usuario->tieneRol('medico') && $cita->vigente && $llego && (bool) $usuario->medico?->puede_marcar_atendida,
+            'yaLlego' => $llego,
+        ]);
+    }
+
+    /** CU26: elegir un nuevo bloque libre del mismo médico. */
+    public function reprogramarForm(Request $request, Cita $cita): View|RedirectResponse
+    {
+        if (! $cita->vigente) {
+            return redirect()->route('citas.show', $cita)->withErrors(['estado' => 'Solo se reprograman citas programadas o confirmadas.']);
+        }
+
+        $cita->load(['paciente', 'medico']);
+        $fecha = $this->fechaValida($request->query('fecha')) ?? max($cita->fecha->toDateString(), $this->citas->hoy());
+
+        return view('citas.reprogramar', [
+            'cita' => $cita,
+            'fecha' => $fecha,
+            'hoy' => $this->citas->hoy(),
+            'bloques' => $this->citas->bloques($cita->medico, $fecha, $cita->id),
+        ]);
+    }
+
+    /** CU26 */
+    public function reprogramar(Request $request, Cita $cita): RedirectResponse
+    {
+        $datos = $request->validate([
+            'fecha' => ['required', 'date_format:Y-m-d'],
+            'hora_inicio' => ['required', 'date_format:H:i'],
+        ]);
+
+        try {
+            $this->citas->reprogramar($cita, $datos['fecha'], $datos['hora_inicio']);
+        } catch (ValidationException $e) {
+            return redirect()->route('citas.reprogramar', ['cita' => $cita, 'fecha' => $datos['fecha']])
+                ->withErrors($e->errors());
+        }
+
+        return redirect()->route('citas.show', $cita)->with('exito', 'Cita reprogramada para el ' . $cita->fecha->format('d/m/Y') . ' a las ' . $cita->inicio . '.');
+    }
+
+    /** CU27: la recepcionista cancela cualquier cita; el paciente solo las suyas. El motivo es obligatorio. */
+    public function cancelar(Request $request, Cita $cita): RedirectResponse
+    {
+        $usuario = $request->user();
+        if ($usuario->tieneRol('paciente') && $usuario->paciente?->id !== $cita->paciente_id) {
+            abort(403);
+        }
+
+        $datos = $request->validate(['motivo_cancelacion' => ['required', 'string', 'min:3', 'max:300']], [
+            'motivo_cancelacion.required' => 'Escriba el motivo de la cancelación.',
+            'motivo_cancelacion.min' => 'El motivo de la cancelación es muy corto.',
+        ]);
+
+        return $this->accion($cita, fn () => $this->citas->cancelar($cita, $datos['motivo_cancelacion']), 'Cita cancelada. El horario quedó libre.');
+    }
+
+    /** CU28 */
+    public function confirmar(Cita $cita): RedirectResponse
+    {
+        return $this->accion($cita, fn () => $this->citas->confirmar($cita), 'Cita confirmada.');
+    }
+
+    /** CU29: registra la asistencia o la inasistencia del paciente. */
+    public function asistencia(Request $request, Cita $cita): RedirectResponse
+    {
+        $tipo = $request->validate(['tipo' => ['required', 'in:asistio,inasistencia']])['tipo'];
+
+        return $tipo === 'asistio'
+            ? $this->accion($cita, fn () => $this->citas->registrarAsistencia($cita), 'Asistencia registrada.')
+            : $this->accion($cita, fn () => $this->citas->registrarInasistencia($cita), 'Inasistencia registrada.');
+    }
+
+    /** CU30: solo el médico dueño de la cita y con el permiso asignado. */
+    public function atender(Request $request, Cita $cita): RedirectResponse
+    {
+        $medico = $request->user()->medico;
+        if (! $medico || $medico->id !== $cita->medico_id || ! $medico->puede_marcar_atendida) {
+            abort(403);
+        }
+
+        return $this->accion($cita, fn () => $this->citas->marcarAtendida($cita), 'Cita marcada como atendida.');
+    }
+
+    /** Ejecuta una acción de estado y vuelve al detalle con el mensaje o con el motivo del rechazo. */
+    private function accion(Cita $cita, \Closure $accion, string $mensaje): RedirectResponse
+    {
+        try {
+            $accion();
+        } catch (ValidationException $e) {
+            return redirect()->route('citas.show', $cita)->withErrors($e->errors());
+        }
+
+        return redirect()->route('citas.show', $cita)->with('exito', $mensaje);
+    }
+
+    /** Administrador y recepcionista ven todas; el médico y el paciente, solo las suyas. */
+    private function autorizarVer(Cita $cita, User $usuario): void
+    {
+        $permitido = match ($usuario->rol) {
+            'administrador', 'recepcionista' => true,
+            'medico' => $usuario->medico?->id === $cita->medico_id,
+            'paciente' => $usuario->paciente?->id === $cita->paciente_id,
+            default => false,
+        };
+
+        abort_unless($permitido, 403);
     }
 
     /** Devuelve la fecha en formato Y-m-d si es válida; si no, null. */

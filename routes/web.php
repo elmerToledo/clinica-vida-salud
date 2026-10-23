@@ -89,6 +89,17 @@ Route::middleware('auth')->group(function () {
     Route::get('citas', [CitaController::class, 'index'])
         ->middleware('rol:administrador,recepcionista,medico')
         ->name('citas.index');
+    Route::get('citas/{cita}', [CitaController::class, 'show'])->whereNumber('cita')->name('citas.show');
+    Route::middleware('rol:recepcionista')->group(function () {
+        Route::get('citas/{cita}/reprogramar', [CitaController::class, 'reprogramarForm'])->whereNumber('cita')->name('citas.reprogramar');
+        Route::patch('citas/{cita}/reprogramar', [CitaController::class, 'reprogramar'])->whereNumber('cita');
+        Route::patch('citas/{cita}/confirmar', [CitaController::class, 'confirmar'])->whereNumber('cita')->name('citas.confirmar');
+        Route::patch('citas/{cita}/asistencia', [CitaController::class, 'asistencia'])->whereNumber('cita')->name('citas.asistencia');
+    });
+    Route::patch('citas/{cita}/cancelar', [CitaController::class, 'cancelar'])
+        ->middleware('rol:recepcionista,paciente')->whereNumber('cita')->name('citas.cancelar');
+    Route::patch('citas/{cita}/atender', [CitaController::class, 'atender'])
+        ->middleware('rol:medico')->whereNumber('cita')->name('citas.atender');
 });
 
 require __DIR__.'/auth.php';

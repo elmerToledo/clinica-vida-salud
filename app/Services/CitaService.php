@@ -162,6 +162,146 @@ class CitaService
         return $bloque;
     }
 
+    /**
+     * CU26: cambia la fecha y hora de una cita programada o confirmada. La disponibilidad
+     * se vuelve a validar en el servidor (RF08, RN13) y la cita queda otra vez como programada.
+     */
+    public function reprogramar(Cita $cita, string $fecha, string $horaInicio): Cita
+    {
+        $this->exigirVigente($cita, 'reprogramar');
+
+        try {
+            return DB::transaction(function () use ($cita, $fecha, $horaInicio) {
+                $medico = Medico::query()->whereKey($cita->medico_id)->lockForUpdate()->firstOrFail();
+                $bloque = $this->bloqueDisponible($medico, $fecha, $horaInicio, $cita->id, 'hora_inicio');
+
+                $antes = $cita->fecha->format('d/m/Y') . ' ' . $cita->inicio;
+
+                $cita->update([
+                    'fecha' => $fecha,
+                    'hora_inicio' => $bloque['inicio'],
+                    'hora_fin' => $bloque['fin'],
+                    'estado' => Cita::PROGRAMADA,
+                    'llegada_at' => null,
+                ]);
+
+                Bitacora::registrar('reprogramar', Cita::MODULO_BITACORA, $cita->id,
+                    $cita->etiquetaBitacora() . " · Antes: {$antes}");
+
+                return $cita;
+            });
+        } catch (QueryException $e) {
+            $this->traducirChoque($e);
+        }
+    }
+
+    /** CU27: cancela una cita programada o confirmada y guarda el motivo. El horario queda libre (RF09, RN09). */
+    public function cancelar(Cita $cita, string $motivo): Cita
+    {
+        $this->exigirVigente($cita, 'cancelar');
+
+        $cita->update(['estado' => Cita::CANCELADA, 'motivo_cancelacion' => $motivo]);
+        Bitacora::registrar('cancelar', Cita::MODULO_BITACORA, $cita->id, $cita->etiquetaBitacora());
+
+        return $cita;
+    }
+
+    /** CU28: solo una cita programada puede pasar a confirmada (RF10). */
+    public function confirmar(Cita $cita): Cita
+    {
+        if ($cita->estado !== Cita::PROGRAMADA) {
+            throw ValidationException::withMessages(['estado' => 'Solo se puede confirmar una cita programada.']);
+        }
+
+        $cita->update(['estado' => Cita::CONFIRMADA]);
+        Bitacora::registrar('confirmar', Cita::MODULO_BITACORA, $cita->id, $cita->etiquetaBitacora());
+
+        return $cita;
+    }
+
+    /** CU29: el paciente llegó a la clínica. No cambia el estado; guarda el momento de llegada. */
+    public function registrarAsistencia(Cita $cita): Cita
+    {
+        $this->exigirVigente($cita, 'registrar la asistencia de');
+        $this->exigirFechaLlegada($cita);
+
+        if ($cita->llegada_at) {
+            throw ValidationException::withMessages(['estado' => 'La asistencia de esta cita ya fue registrada.']);
+        }
+
+        $cita->update(['llegada_at' => $this->ahora()->utc()]);
+        Bitacora::registrar('asistencia', Cita::MODULO_BITACORA, $cita->id, $cita->etiquetaBitacora());
+
+        return $cita;
+    }
+
+    /** CU29: el paciente no se presentó. La cita pasa a "inasistencia" y se conserva en el historial. */
+    public function registrarInasistencia(Cita $cita): Cita
+    {
+        $this->exigirVigente($cita, 'registrar la inasistencia de');
+        $this->exigirFechaLlegada($cita);
+
+        if ($cita->llegada_at) {
+            throw ValidationException::withMessages(['estado' => 'El paciente ya llegó: no se puede registrar su inasistencia.']);
+        }
+
+        $cita->update(['estado' => Cita::INASISTENCIA]);
+        Bitacora::registrar('inasistencia', Cita::MODULO_BITACORA, $cita->id, $cita->etiquetaBitacora());
+
+        return $cita;
+    }
+
+    /** CU30: el médico con permiso marca la cita como atendida. Una cita cancelada no puede marcarse (RF10, RN10). */
+    public function marcarAtendida(Cita $cita): Cita
+    {
+        $this->exigirVigente($cita, 'marcar como atendida');
+        $this->exigirFechaLlegada($cita);
+
+        $cita->update(['estado' => Cita::ATENDIDA]);
+        Bitacora::registrar('atender', Cita::MODULO_BITACORA, $cita->id, $cita->etiquetaBitacora());
+
+        return $cita;
+    }
+
+    /**
+     * Citas vigentes (programadas o confirmadas) de hoy en adelante que caen dentro de un horario de atención.
+     * Sirve para impedir que un cambio de horario deje citas sin atender (CU22 y CU23).
+     *
+     * @return Collection<int, Cita>
+     */
+    public function citasDelHorario(HorarioAtencion $horario): Collection
+    {
+        $inicio = substr($horario->hora_inicio, 0, 5);
+        $fin = substr($horario->hora_fin, 0, 5);
+
+        return Cita::query()
+            ->where('medico_id', $horario->medico_id)
+            ->whereIn('estado', [Cita::PROGRAMADA, Cita::CONFIRMADA])
+            ->where('fecha', '>=', $this->hoy())
+            ->get()
+            ->filter(fn (Cita $c) => $c->fecha->dayOfWeekIso === (int) $horario->dia_semana
+                && $c->inicio >= $inicio && $c->fin <= $fin)
+            ->values();
+    }
+
+    /** Solo las citas programadas o confirmadas admiten cambios (RF10). */
+    private function exigirVigente(Cita $cita, string $accion): void
+    {
+        if (! $cita->vigente) {
+            throw ValidationException::withMessages([
+                'estado' => 'No se puede ' . $accion . ' una cita ' . mb_strtolower($cita->estado_nombre) . '.',
+            ]);
+        }
+    }
+
+    /** No se registra asistencia, inasistencia ni atención de citas de fechas futuras. */
+    private function exigirFechaLlegada(Cita $cita): void
+    {
+        if ($cita->fecha->toDateString() > $this->hoy()) {
+            throw ValidationException::withMessages(['estado' => 'La cita es de una fecha futura: todavía no se puede registrar este paso.']);
+        }
+    }
+
     /** Si PostgreSQL rechazó la cita por superposición (dos reservas simultáneas), se da el mismo mensaje. */
     public function traducirChoque(QueryException $e): never
     {

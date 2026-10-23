@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\HorarioAtencionRequest;
 use App\Models\HorarioAtencion;
 use App\Models\Medico;
+use App\Services\CitaService;
 use App\Services\HorarioService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,7 @@ use Illuminate\View\View;
  */
 class HorarioAtencionController extends Controller
 {
-    public function __construct(private HorarioService $horarios)
+    public function __construct(private HorarioService $horarios, private CitaService $citas)
     {
     }
 
@@ -82,11 +83,26 @@ class HorarioAtencionController extends Controller
     }
 
     /**
-     * CU22: modifica el horario.
-     * Pendiente del Ciclo 2: rechazar el cambio si hay citas programadas que quedarían fuera del horario.
+     * CU22: modifica el horario. Se rechaza el cambio si hay citas programadas o confirmadas
+     * que quedarían fuera del nuevo horario: primero se reprograman o se cancelan.
      */
     public function update(HorarioAtencionRequest $request, HorarioAtencion $horario): RedirectResponse
     {
+        if ($horario->activo) {
+            $nuevo = $request->validated();
+            $fuera = $this->citas->citasDelHorario($horario)->filter(fn ($c) => (int) $nuevo['medico_id'] !== (int) $horario->medico_id
+                || (int) $nuevo['dia_semana'] !== (int) $horario->dia_semana
+                || $c->inicio < $nuevo['hora_inicio']
+                || $c->fin > $nuevo['hora_fin']);
+
+            if ($fuera->isNotEmpty()) {
+                return back()->withInput()->withErrors([
+                    'hora_inicio' => 'Hay ' . $fuera->count() . ($fuera->count() === 1 ? ' cita programada' : ' citas programadas')
+                        . ' que quedarían fuera del nuevo horario. Reprográmelas o cancélelas antes de cambiarlo.',
+                ]);
+            }
+        }
+
         try {
             $horario->update($request->validated());
         } catch (QueryException $e) {
@@ -99,10 +115,18 @@ class HorarioAtencionController extends Controller
 
     /**
      * CU23: desactiva el horario (o lo reactiva si no se traslapa con otro activo).
-     * Pendiente del Ciclo 2: rechazar la desactivación si hay citas futuras programadas en ese horario.
+     * No se desactiva si tiene citas futuras programadas o confirmadas.
      */
     public function cambiarEstado(HorarioAtencion $horario): RedirectResponse
     {
+        if ($horario->activo) {
+            $pendientes = $this->citas->citasDelHorario($horario)->count();
+            if ($pendientes > 0) {
+                return back()->with('error', 'No se puede desactivar: hay ' . $pendientes . ($pendientes === 1 ? ' cita programada' : ' citas programadas')
+                    . ' en ese horario. Reprográmelas o cancélelas primero.');
+            }
+        }
+
         if (! $horario->activo) {
             $conflicto = $this->horarios->solapamiento(
                 $horario->medico_id,

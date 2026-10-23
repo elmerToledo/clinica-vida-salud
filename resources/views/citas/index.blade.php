@@ -64,7 +64,7 @@
                             @forelse ($citas as $cita)
                                 <tr class="{{ $cita->estado === 'cancelada' ? 'opacity-60' : '' }}">
                                     <td class="px-4 py-3 whitespace-nowrap font-medium">{{ $cita->fecha->format('d/m/Y') }} · {{ $cita->inicio }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap">{{ $cita->codigo }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap"><a href="{{ route('citas.show', $cita) }}" class="accion">{{ $cita->codigo }}</a></td>
                                     <td class="px-4 py-3">{{ $cita->paciente->apellidos }}, {{ $cita->paciente->nombres }}</td>
                                     @unless ($soloPropias)
                                         <td class="px-4 py-3 hidden md:table-cell">{{ $cita->medico->apellidos }}, {{ $cita->medico->nombres }}</td>
