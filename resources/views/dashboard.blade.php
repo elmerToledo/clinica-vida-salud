@@ -1,7 +1,7 @@
 @php
     $fecha = \Illuminate\Support\Str::ucfirst(now()->timezone('America/La_Paz')->locale('es')->translatedFormat('l j \d\e F \d\e Y'));
-    $iconos = ['usuarios.index' => 'lock', 'pacientes.index' => 'users', 'medicos.index' => 'stethoscope', 'especialidades.index' => 'heart', 'horarios.index' => 'clock', 'bitacora.index' => 'file-text', 'citas.index' => 'calendar-check'];
-    $avisos = ['Horario de atención: ' . config('clinica.horario'), 'Verifique los datos del paciente al registrarlo', 'Próximamente: reserva de citas en línea'];
+    $iconos = ['usuarios.index' => 'lock', 'pacientes.index' => 'users', 'medicos.index' => 'stethoscope', 'especialidades.index' => 'heart', 'horarios.index' => 'clock', 'bitacora.index' => 'file-text', 'citas.index' => 'calendar-check', 'citas.disponibilidad' => 'calendar-check', 'mis-citas.index' => 'file-text', 'perfil.edit' => 'user-check'];
+    $avisos = ['Horario de atención: ' . config('clinica.horario'), 'Verifique los datos del paciente al registrarlo', 'Los pacientes con cuenta pueden reservar su cita en línea'];
 @endphp
 
 <x-app-layout>
@@ -12,6 +12,10 @@
             @if ($usuario->tieneRol('administrador', 'recepcionista'))
                 <div class="mt-8">
                     <x-boton :href="route('pacientes.create')">Nuevo paciente <x-icono nombre="arrow-right" class="h-5 w-5" /></x-boton>
+                </div>
+            @elseif ($usuario->tieneRol('paciente'))
+                <div class="mt-8">
+                    <x-boton :href="route('citas.disponibilidad')">Reservar cita <x-icono nombre="arrow-right" class="h-5 w-5" /></x-boton>
                 </div>
             @endif
         </div>
@@ -82,11 +86,6 @@
                 </section>
             @endif
 
-            @if ($usuario->tieneRol('paciente'))
-                <div class="card-soft p-6 text-[15px] text-suave">
-                    Aquí podrá reservar y consultar sus citas médicas. Este módulo se habilita en la siguiente etapa del sistema.
-                </div>
-            @endif
         </div>
     </div>
 </x-app-layout>

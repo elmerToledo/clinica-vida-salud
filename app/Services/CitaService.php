@@ -111,6 +111,7 @@ class CitaService
                 $medico = Medico::query()->whereKey($datos['medico_id'])->lockForUpdate()->firstOrFail();
 
                 $bloque = $this->bloqueDisponible($medico, $datos['fecha'], $datos['hora_inicio']);
+                $this->exigirPacienteLibre((int) $datos['paciente_id'], $datos['fecha'], $bloque['inicio'], $bloque['fin']);
 
                 $cita = Cita::create([
                     'paciente_id' => $datos['paciente_id'],
@@ -174,6 +175,7 @@ class CitaService
             return DB::transaction(function () use ($cita, $fecha, $horaInicio) {
                 $medico = Medico::query()->whereKey($cita->medico_id)->lockForUpdate()->firstOrFail();
                 $bloque = $this->bloqueDisponible($medico, $fecha, $horaInicio, $cita->id, 'hora_inicio');
+                $this->exigirPacienteLibre($cita->paciente_id, $fecha, $bloque['inicio'], $bloque['fin'], $cita->id);
 
                 $antes = $cita->fecha->format('d/m/Y') . ' ' . $cita->inicio;
 
@@ -282,6 +284,22 @@ class CitaService
             ->filter(fn (Cita $c) => $c->fecha->dayOfWeekIso === (int) $horario->dia_semana
                 && $c->inicio >= $inicio && $c->fin <= $fin)
             ->values();
+    }
+
+    /** Un paciente no puede tener dos citas que se superpongan, ni siquiera con médicos distintos (RF07). */
+    private function exigirPacienteLibre(int $pacienteId, string $fecha, string $inicio, string $fin, ?int $ignorarCitaId = null): void
+    {
+        $choca = Cita::query()
+            ->where('paciente_id', $pacienteId)
+            ->where('fecha', $fecha)
+            ->ocupan()
+            ->when($ignorarCitaId, fn ($q) => $q->where('id', '!=', $ignorarCitaId))
+            ->get(['hora_inicio', 'hora_fin'])
+            ->contains(fn (Cita $c) => $inicio < substr($c->hora_fin, 0, 5) && $fin > substr($c->hora_inicio, 0, 5));
+
+        if ($choca) {
+            throw ValidationException::withMessages(['hora_inicio' => 'El paciente ya tiene otra cita en ese horario.']);
+        }
     }
 
     /** Solo las citas programadas o confirmadas admiten cambios (RF10). */

@@ -54,7 +54,12 @@ it('exige usuario y contraseña', function () {
 
 it('crea con rol paciente a quien se registra desde la pantalla pública', function () {
     $this->post('/register', [
-        'name' => 'Nuevo Paciente',
+        'nombres' => 'Nuevo',
+        'apellidos' => 'Paciente',
+        'ci' => '9000002',
+        'fecha_nacimiento' => '1992-03-10',
+        'sexo' => 'F',
+        'telefono' => '71234567',
         'email' => 'nuevo@example.com',
         'password' => 'Clave12345',
         'password_confirmation' => 'Clave12345',

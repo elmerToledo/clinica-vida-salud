@@ -25,10 +25,15 @@ class Menu
 
         $bitacora = ['etiqueta' => 'Bitácora', 'ruta' => 'bitacora.index', 'patron' => 'bitacora.*', 'descripcion' => 'Registro de actividad del sistema'];
 
+        $reservar = ['etiqueta' => 'Reservar cita', 'ruta' => 'citas.disponibilidad', 'patron' => 'citas.*', 'descripcion' => 'Elija médico, fecha y horario'];
+        $misCitas = ['etiqueta' => 'Mis citas', 'ruta' => 'mis-citas.index', 'patron' => 'mis-citas.*', 'descripcion' => 'Sus próximas citas y su historial'];
+        $misDatos = ['etiqueta' => 'Mis datos', 'ruta' => 'perfil.edit', 'patron' => 'perfil.*', 'descripcion' => 'Sus datos de paciente'];
+
         return match ($usuario->rol) {
             'administrador' => [$inicio, $usuarios, $pacientes, $medicos, $especialidades, $horarios, array_merge($citas, ['descripcion' => 'Agenda de citas de todos los médicos']), $bitacora],
             'recepcionista' => [$inicio, $pacientes, $medicos, $especialidades, $horarios, $citas],
             'medico' => [$inicio, array_merge($horarios, ['etiqueta' => 'Mis horarios', 'descripcion' => 'Sus días y horas de atención']), array_merge($citas, ['etiqueta' => 'Mi agenda', 'descripcion' => 'Sus citas por fecha y estado'])],
+            'paciente' => [$inicio, $reservar, $misCitas, $misDatos],
             default => [$inicio],
         };
     }

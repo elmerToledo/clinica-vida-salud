@@ -2,7 +2,7 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2>Nueva <em>cita</em></h2>
+        <h2>{!! $miPaciente ? 'Reservar <em>cita</em>' : 'Nueva <em>cita</em>' !!}</h2>
     </x-slot>
 
     <div class="py-6 sm:py-10">
@@ -28,14 +28,21 @@
                     <div class="text-gray-700">{{ $fechaTexto }} · {{ $bloque['inicio'] }} a {{ $bloque['fin'] }} ({{ $bloque['duracion'] }} min)</div>
                 </div>
 
-                <x-campo-select name="paciente_id" label="Paciente" required>
-                    <option value="">Seleccione…</option>
-                    @foreach ($pacientes as $paciente)
-                        <option value="{{ $paciente->id }}" @selected((string) old('paciente_id') === (string) $paciente->id)>
-                            {{ $paciente->apellidos }}, {{ $paciente->nombres }} · CI {{ $paciente->ci }}
-                        </option>
-                    @endforeach
-                </x-campo-select>
+                @if ($miPaciente)
+                    <div>
+                        <div class="block font-semibold text-sm text-tinta">Paciente</div>
+                        <div class="mt-1 campo bg-gray-50">{{ $miPaciente->nombres }} {{ $miPaciente->apellidos }} · CI {{ $miPaciente->ci }}</div>
+                    </div>
+                @else
+                    <x-campo-select name="paciente_id" label="Paciente" required>
+                        <option value="">Seleccione…</option>
+                        @foreach ($pacientes as $paciente)
+                            <option value="{{ $paciente->id }}" @selected((string) old('paciente_id') === (string) $paciente->id)>
+                                {{ $paciente->apellidos }}, {{ $paciente->nombres }} · CI {{ $paciente->ci }}
+                            </option>
+                        @endforeach
+                    </x-campo-select>
+                @endif
 
                 <x-campo-select name="especialidad_id" label="Especialidad de la consulta" required>
                     <option value="">Seleccione…</option>
@@ -56,7 +63,7 @@
 
                 <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                     <x-boton tipo="secundario" :href="route('citas.disponibilidad', ['medico' => $medico->id, 'fecha' => $fecha])">Volver</x-boton>
-                    <x-boton>Registrar cita</x-boton>
+                    <x-boton>{{ $miPaciente ? 'Reservar cita' : 'Registrar cita' }}</x-boton>
                 </div>
             </form>
         </div>

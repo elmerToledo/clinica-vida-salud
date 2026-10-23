@@ -2,7 +2,7 @@
      Las opciones dependen del rol (App\Support\Menu). --}}
 @php
     $menu = \App\Support\Menu::para(Auth::user());
-    $iconos = ['dashboard' => 'home', 'usuarios.index' => 'lock', 'pacientes.index' => 'users', 'medicos.index' => 'stethoscope', 'especialidades.index' => 'heart', 'horarios.index' => 'clock', 'bitacora.index' => 'file-text', 'citas.index' => 'calendar-check'];
+    $iconos = ['dashboard' => 'home', 'usuarios.index' => 'lock', 'pacientes.index' => 'users', 'medicos.index' => 'stethoscope', 'especialidades.index' => 'heart', 'horarios.index' => 'clock', 'bitacora.index' => 'file-text', 'citas.index' => 'calendar-check', 'citas.disponibilidad' => 'calendar-check', 'mis-citas.index' => 'file-text', 'perfil.edit' => 'user-check'];
     $inicial = mb_strtoupper(mb_substr(Auth::user()->name, 0, 1));
 @endphp
 

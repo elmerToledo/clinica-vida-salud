@@ -4,12 +4,21 @@
             <h2>Disponibilidad de <em>citas</em></h2>
             @if (auth()->user()->tieneRol('recepcionista'))
                 <x-boton tipo="secundario" :href="route('citas.index')">Ver agenda</x-boton>
+            @elseif (auth()->user()->tieneRol('paciente'))
+                <x-boton tipo="secundario" :href="route('mis-citas.index')">Mis citas</x-boton>
             @endif
         </div>
     </x-slot>
 
     <div class="py-6 sm:py-10">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+            @if ($sinPerfil)
+                <div class="rounded-2xl border border-linea bg-ambar-claro/40 p-4 text-sm text-gray-800">
+                    Para reservar necesita completar sus datos de paciente.
+                    <a href="{{ route('perfil.edit') }}" class="accion">Completar mi perfil</a>
+                </div>
+            @endif
+
             <x-filtros>
                 <div>
                     <x-input-label for="medico" value="Médico" />

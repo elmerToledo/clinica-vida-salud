@@ -50,6 +50,7 @@
                             <td class="px-5 py-4 hidden sm:table-cell whitespace-nowrap">{{ $paciente->telefono }}</td>
                             <td class="px-5 py-4"><x-estado-badge :activo="$paciente->activo" /></td>
                             <td class="px-5 py-4 text-right whitespace-nowrap space-x-1">
+                                <a href="{{ route('pacientes.historial', $paciente) }}" class="accion">Citas</a>
                                 <a href="{{ route('pacientes.edit', $paciente) }}" class="accion">Editar</a>
                                 @if (auth()->user()->tieneRol('administrador'))
                                     <form method="POST" action="{{ route('pacientes.estado', $paciente) }}" class="inline"

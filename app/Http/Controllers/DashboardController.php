@@ -36,6 +36,15 @@ class DashboardController extends Controller
                 : 0;
         }
 
+        if ($usuario->tieneRol('paciente')) {
+            $resumen['Mis próximas citas'] = $usuario->paciente
+                ? $usuario->paciente->citas()
+                    ->whereIn('estado', ['programada', 'confirmada'])
+                    ->where('fecha', '>=', app(\App\Services\CitaService::class)->hoy())
+                    ->count()
+                : 0;
+        }
+
         // El primer elemento del menú es "Inicio"; en las tarjetas solo van los módulos.
         $accesos = array_values(array_filter(Menu::para($usuario), fn (array $item) => $item['ruta'] !== 'dashboard'));
 

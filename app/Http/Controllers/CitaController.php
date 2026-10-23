@@ -36,13 +36,22 @@ class CitaController extends Controller
             'fecha' => $fecha,
             'hoy' => $this->citas->hoy(),
             'bloques' => $medico ? $this->citas->bloques($medico, $fecha) : collect(),
-            'puedeReservar' => $request->user()->tieneRol('recepcionista'),
+            'puedeReservar' => $request->user()->tieneRol('recepcionista', 'paciente'),
+            'sinPerfil' => $request->user()->tieneRol('paciente') && ! $request->user()->paciente,
         ]);
     }
 
-    /** CU25: formulario para el bloque elegido en la disponibilidad. */
+    /** CU25 y CU35: formulario para el bloque elegido en la disponibilidad. */
     public function create(Request $request): View|RedirectResponse
     {
+        $usuario = $request->user();
+        $esPaciente = $usuario->tieneRol('paciente');
+
+        // El paciente reserva a su nombre: antes necesita su ficha de paciente.
+        if ($esPaciente && ! $usuario->paciente) {
+            return redirect()->route('perfil.edit')->with('error', 'Complete su perfil para reservar una cita.');
+        }
+
         $medico = Medico::activos()->with(['especialidades' => fn ($q) => $q->where('especialidades.activo', true)])
             ->find((int) $request->query('medico'));
         $fecha = $this->fechaValida($request->query('fecha'));
@@ -65,7 +74,8 @@ class CitaController extends Controller
             'medico' => $medico,
             'fecha' => $fecha,
             'bloque' => $bloque,
-            'pacientes' => Paciente::activos()->orderBy('apellidos')->orderBy('nombres')->get(),
+            'pacientes' => $esPaciente ? null : Paciente::activos()->orderBy('apellidos')->orderBy('nombres')->get(),
+            'miPaciente' => $esPaciente ? $usuario->paciente : null,
         ]);
     }
 
@@ -73,10 +83,15 @@ class CitaController extends Controller
     public function store(CitaRequest $request): RedirectResponse
     {
         $cita = $this->citas->registrar($request->validated(), $request->user());
+        $mensaje = "Cita {$cita->codigo} registrada para el {$cita->fecha->format('d/m/Y')} a las {$cita->inicio}.";
+
+        if ($request->user()->tieneRol('paciente')) {
+            return redirect()->route('mis-citas.index')->with('exito', $mensaje);
+        }
 
         return redirect()
             ->route('citas.index', ['desde' => $cita->fecha->toDateString(), 'hasta' => $cita->fecha->toDateString()])
-            ->with('exito', "Cita {$cita->codigo} registrada para el {$cita->fecha->format('d/m/Y')} a las {$cita->inicio}.");
+            ->with('exito', $mensaje);
     }
 
     /** CU31: agenda por médico, fecha y estado. Un médico solo ve sus propias citas. */
@@ -111,6 +126,20 @@ class CitaController extends Controller
             'estado' => $estado,
             'soloPropias' => $soloPropias,
             'puedeRegistrar' => $usuario->tieneRol('recepcionista'),
+        ]);
+    }
+
+    /** CU32: historial completo de citas de un paciente (pasadas, canceladas y futuras). */
+    public function historialPaciente(Paciente $paciente): View
+    {
+        return view('citas.historial', [
+            'paciente' => $paciente,
+            'citas' => Cita::query()
+                ->with(['medico', 'especialidad'])
+                ->where('paciente_id', $paciente->id)
+                ->orderByDesc('fecha')
+                ->orderByDesc('hora_inicio')
+                ->paginate(15),
         ]);
     }
 
