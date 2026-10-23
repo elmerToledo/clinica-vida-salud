@@ -58,9 +58,9 @@
                     @forelse ($registros as $registro)
                         @php
                             $tono = match ($registro->accion) {
-                                'ingreso', 'activar' => 'bg-green-100 text-ok',
-                                'ingreso_fallido', 'desactivar' => 'bg-red-100 text-red-800',
-                                'modificar' => 'bg-ambar-claro text-tinta',
+                                'ingreso', 'activar', 'confirmar', 'asistencia', 'atender' => 'bg-green-100 text-ok',
+                                'ingreso_fallido', 'desactivar', 'cancelar', 'inasistencia' => 'bg-red-100 text-red-800',
+                                'modificar', 'reprogramar' => 'bg-ambar-claro text-tinta',
                                 'crear' => 'bg-teal-100 text-deep',
                                 default => 'bg-gray-200 text-gray-700',
                             };

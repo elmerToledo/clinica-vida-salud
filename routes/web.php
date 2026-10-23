@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\CitaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\HorarioAtencionController;
@@ -76,6 +77,18 @@ Route::middleware('auth')->group(function () {
             ->parameters(['horarios' => 'horario']);
         Route::patch('horarios/{horario}/estado', [HorarioAtencionController::class, 'cambiarEstado'])->name('horarios.estado');
     });
+
+    // ---- Citas (CU24-CU32): disponibilidad la consultan Recepcionista y Paciente; registrar, solo Recepcionista ----
+    Route::get('citas/disponibilidad', [CitaController::class, 'disponibilidad'])
+        ->middleware('rol:recepcionista,paciente')
+        ->name('citas.disponibilidad');
+    Route::middleware('rol:recepcionista')->group(function () {
+        Route::get('citas/nueva', [CitaController::class, 'create'])->name('citas.create');
+        Route::post('citas', [CitaController::class, 'store'])->name('citas.store');
+    });
+    Route::get('citas', [CitaController::class, 'index'])
+        ->middleware('rol:administrador,recepcionista,medico')
+        ->name('citas.index');
 });
 
 require __DIR__.'/auth.php';

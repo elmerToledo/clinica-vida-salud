@@ -1,6 +1,6 @@
 @php
     $fecha = \Illuminate\Support\Str::ucfirst(now()->timezone('America/La_Paz')->locale('es')->translatedFormat('l j \d\e F \d\e Y'));
-    $iconos = ['usuarios.index' => 'lock', 'pacientes.index' => 'users', 'medicos.index' => 'stethoscope', 'especialidades.index' => 'heart', 'horarios.index' => 'clock', 'bitacora.index' => 'file-text'];
+    $iconos = ['usuarios.index' => 'lock', 'pacientes.index' => 'users', 'medicos.index' => 'stethoscope', 'especialidades.index' => 'heart', 'horarios.index' => 'clock', 'bitacora.index' => 'file-text', 'citas.index' => 'calendar-check'];
     $avisos = ['Horario de atención: ' . config('clinica.horario'), 'Verifique los datos del paciente al registrarlo', 'Próximamente: reserva de citas en línea'];
 @endphp
 

@@ -28,6 +28,12 @@ class Bitacora extends Model
         'modificar' => 'Modificación',
         'activar' => 'Activación',
         'desactivar' => 'Desactivación',
+        'reprogramar' => 'Reprogramación',
+        'cancelar' => 'Cancelación',
+        'confirmar' => 'Confirmación',
+        'asistencia' => 'Asistencia',
+        'inasistencia' => 'Inasistencia',
+        'atender' => 'Atención',
     ];
 
     public const MODULOS = [
@@ -37,6 +43,7 @@ class Bitacora extends Model
         'medicos' => 'Médicos',
         'especialidades' => 'Especialidades',
         'horarios' => 'Horarios',
+        'citas' => 'Citas',
     ];
 
     protected function casts(): array

@@ -1,9 +1,12 @@
 <?php
 
+use App\Models\Cita;
 use App\Models\Especialidad;
 use App\Models\HorarioAtencion;
 use App\Models\Medico;
 use App\Models\Paciente;
+use App\Services\CitaService;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -85,4 +88,36 @@ function crearHorario(Medico $medico, int $dia, string $inicio, string $fin, int
         'duracion_cita_min' => $duracion,
         'activo' => $activo,
     ]);
+}
+
+// ---- Ciclo 2: ayudas para las pruebas de citas ----
+
+function proximoLunes(): string
+{
+    return CarbonImmutable::now(CitaService::ZONA)->next(CarbonImmutable::MONDAY)->toDateString();
+}
+
+function datosCita($t, array $extra = []): array
+{
+    return array_merge([
+        'paciente_id' => $t->paciente->id,
+        'medico_id' => $t->medico->id,
+        'especialidad_id' => $t->especialidad->id,
+        'fecha' => proximoLunes(),
+        'hora_inicio' => '09:00',
+        'motivo_consulta' => 'Control',
+    ], $extra);
+}
+
+function crearCita($t, array $extra = []): Cita
+{
+    return Cita::create(array_merge([
+        'paciente_id' => $t->paciente->id,
+        'medico_id' => $t->medico->id,
+        'especialidad_id' => $t->especialidad->id,
+        'fecha' => proximoLunes(),
+        'hora_inicio' => '09:00',
+        'hora_fin' => '09:30',
+        'estado' => 'programada',
+    ], $extra));
 }
