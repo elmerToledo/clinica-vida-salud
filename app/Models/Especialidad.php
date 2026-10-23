@@ -15,6 +15,10 @@ use Illuminate\Support\Str;
  */
 class Especialidad extends Model
 {
+    use \App\Models\Concerns\RegistraBitacora;
+
+    public const MODULO_BITACORA = 'especialidades';
+
     // Laravel pluralizaría "Especialidad" en inglés; se indica el nombre real de la tabla.
     protected $table = 'especialidades';
 
@@ -52,5 +56,11 @@ class Especialidad extends Model
     public function scopeActivas(Builder $query): Builder
     {
         return $query->where('activo', true);
+    }
+
+    /** Texto que se anota en la bitácora para identificar este registro. */
+    public function etiquetaBitacora(): string
+    {
+        return (string) $this->nombre;
     }
 }

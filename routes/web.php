@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\HorarioAtencionController;
@@ -27,6 +28,11 @@ Route::middleware('auth')->group(function () {
             ->parameters(['usuarios' => 'usuario']);
         Route::patch('usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])->name('usuarios.estado');
     });
+
+    // ---- Bitácora del sistema: solo Administrador (solo consulta) ----
+    Route::get('bitacora', [BitacoraController::class, 'index'])
+        ->middleware('rol:administrador')
+        ->name('bitacora.index');
 
     // ---- Pacientes (CU08-CU11): Administrador y Recepcionista; desactivar solo Administrador ----
     Route::middleware('rol:administrador,recepcionista')->group(function () {

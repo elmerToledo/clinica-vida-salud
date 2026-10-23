@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MedicoRequest;
+use App\Models\Bitacora;
 use App\Models\Especialidad;
 use App\Models\Medico;
 use App\Models\User;
@@ -76,7 +77,11 @@ class MedicoController extends Controller
             $datos['puede_marcar_atendida'] = $request->boolean('puede_marcar_atendida');
 
             $medico->update($datos);
-            $medico->especialidades()->sync($request->validated('especialidades'));
+            $cambios = $medico->especialidades()->sync($request->validated('especialidades'));
+
+            if ($cambios['attached'] || $cambios['detached']) {
+                Bitacora::registrar('modificar', 'medicos', $medico->id, $medico->etiquetaBitacora() . ' · Campos: especialidades');
+            }
         });
 
         return redirect()->route('medicos.index')->with('exito', 'Datos del médico actualizados.');

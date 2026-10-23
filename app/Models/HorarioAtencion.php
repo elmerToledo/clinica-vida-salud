@@ -15,6 +15,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class HorarioAtencion extends Model
 {
+    use \App\Models\Concerns\RegistraBitacora;
+
+    public const MODULO_BITACORA = 'horarios';
+
     // Laravel pluralizaría el nombre en inglés; se indica el nombre real de la tabla.
     protected $table = 'horarios_atencion';
 
@@ -61,5 +65,11 @@ class HorarioAtencion extends Model
     public function scopeActivos(Builder $query): Builder
     {
         return $query->where('activo', true);
+    }
+
+    /** Texto que se anota en la bitácora para identificar este registro. */
+    public function etiquetaBitacora(): string
+    {
+        return trim((($this->medico?->apellidos) ?? ('Médico #' . $this->medico_id)) . ' · ' . $this->dia_nombre . ' ' . substr((string) $this->hora_inicio, 0, 5) . '-' . substr((string) $this->hora_fin, 0, 5));
     }
 }

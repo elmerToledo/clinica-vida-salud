@@ -4,8 +4,8 @@ use App\Models\User;
 
 // RN12: cada operación exige sesión válida y rol autorizado.
 
-it('redirige al login a quien no inició sesión', function (string $ruta) {
-    $this->get($ruta)->assertRedirect('/login');
+it('redirige a la página pública a quien no inició sesión', function (string $ruta) {
+    $this->get($ruta)->assertRedirect('/');
 })->with(['/dashboard', '/usuarios', '/pacientes', '/medicos', '/especialidades', '/horarios']);
 
 it('muestra el inicio a cada rol', function (string $rol) {

@@ -14,6 +14,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Paciente extends Model
 {
+    use \App\Models\Concerns\RegistraBitacora;
+
+    public const MODULO_BITACORA = 'pacientes';
+
     protected $table = 'pacientes';
 
     protected $fillable = [
@@ -81,5 +85,11 @@ class Paciente extends Model
                 ->orWhereRaw('LOWER(nombres) LIKE ?', [$like])
                 ->orWhereRaw('LOWER(apellidos) LIKE ?', [$like]);
         });
+    }
+
+    /** Texto que se anota en la bitácora para identificar este registro. */
+    public function etiquetaBitacora(): string
+    {
+        return "{$this->apellidos}, {$this->nombres} · CI {$this->ci}";
     }
 }

@@ -17,6 +17,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Medico extends Model
 {
+    use \App\Models\Concerns\RegistraBitacora;
+
+    public const MODULO_BITACORA = 'medicos';
+
     protected $table = 'medicos';
 
     protected $fillable = [
@@ -98,5 +102,11 @@ class Medico extends Model
                     $e->whereRaw('LOWER(nombre) LIKE ?', [$like]);
                 });
         });
+    }
+
+    /** Texto que se anota en la bitácora para identificar este registro. */
+    public function etiquetaBitacora(): string
+    {
+        return "{$this->apellidos}, {$this->nombres} · Reg. {$this->registro_profesional}";
     }
 }

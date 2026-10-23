@@ -21,8 +21,10 @@ class Menu
         $especialidades = ['etiqueta' => 'Especialidades', 'ruta' => 'especialidades.index', 'patron' => 'especialidades.*', 'descripcion' => 'Catálogo de especialidades médicas'];
         $horarios = ['etiqueta' => 'Horarios', 'ruta' => 'horarios.index', 'patron' => 'horarios.*', 'descripcion' => 'Horarios de atención de los médicos'];
 
+        $bitacora = ['etiqueta' => 'Bitácora', 'ruta' => 'bitacora.index', 'patron' => 'bitacora.*', 'descripcion' => 'Registro de actividad del sistema'];
+
         return match ($usuario->rol) {
-            'administrador' => [$inicio, $usuarios, $pacientes, $medicos, $especialidades, $horarios],
+            'administrador' => [$inicio, $usuarios, $pacientes, $medicos, $especialidades, $horarios, $bitacora],
             'recepcionista' => [$inicio, $pacientes, $medicos, $especialidades, $horarios],
             'medico' => [$inicio, array_merge($horarios, ['etiqueta' => 'Mis horarios', 'descripcion' => 'Sus días y horas de atención'])],
             default => [$inicio],

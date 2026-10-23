@@ -22,6 +22,10 @@ use Illuminate\Notifications\Notifiable;
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    use \App\Models\Concerns\RegistraBitacora;
+
+    public const MODULO_BITACORA = 'usuarios';
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -97,5 +101,11 @@ class User extends Authenticatable
         }
 
         return $nombre;
+    }
+
+    /** Texto que se anota en la bitácora para identificar este registro. */
+    public function etiquetaBitacora(): string
+    {
+        return "{$this->name} ({$this->usuario}) · rol: {$this->rol}";
     }
 }

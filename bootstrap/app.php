@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [\App\Http\Middleware\UsuarioActivo::class]);
         // Detrás del balanceador de la nube (HTTPS): confiar en los encabezados X-Forwarded-*.
         $middleware->trustProxies(at: '*');
+        // Quien no tiene sesión y entra a una pantalla interna ve primero la página pública de la clínica.
+        $middleware->redirectGuestsTo('/');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
