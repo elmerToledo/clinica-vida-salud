@@ -25,7 +25,7 @@
                     <h2 class="font-display text-5xl font-semibold leading-tight">Su salud,<br><em class="text-ambar-claro">bien organizada.</em></h2>
                     <p class="mt-4 max-w-sm text-crema/80">Sistema de citas médicas de la Clínica Santa Aurora.</p>
                 </div>
-                <img src="{{ asset('img/c4.jpg') }}" alt="" class="relative h-48 w-full rounded-2xl object-cover opacity-90">
+                <img src="{{ asset('img/c4.jpg') }}" alt="Médico y paciente conversando en la clínica" class="relative h-72 w-full rounded-2xl object-cover object-top shadow-xl shadow-black/20 ring-1 ring-white/10">
             </aside>
 
             <!-- Formulario -->
