@@ -16,7 +16,7 @@
             <div class="card-soft overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-ambar-claro/40 text-left text-xs font-bold uppercase tracking-wider text-deep">
+                        <thead class="text-left text-xs font-bold uppercase tracking-wider text-suave">
                             <tr>
                                 <th class="px-4 py-3">Fecha y hora</th>
                                 <th class="px-4 py-3">Código</th>

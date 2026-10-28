@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="tema">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,19 +7,23 @@
 
         <title>{{ config('app.name', 'Clínica Santa Aurora') }}</title>
 
+        @include('layouts.tema-script')
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..900;1,9..144,500..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased bg-fondo text-tinta">
-        <div class="min-h-screen lg:flex">
+        <div class="min-h-screen lg:flex" x-data="panelLateral">
             @include('layouts.navigation')
 
             <div class="flex-1 min-w-0">
+                @include('layouts.topbar')
+
                 <!-- Banner con el título de la pantalla -->
                 @isset($header)
                     <header class="cabecera max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8">

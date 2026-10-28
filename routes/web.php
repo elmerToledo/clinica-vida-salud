@@ -20,6 +20,9 @@ Route::get('/', LandingController::class)->name('inicio');
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
+    // Apariencia: tema claro/oscuro y color de acento (se guardan en el navegador).
+    Route::view('/apariencia', 'apariencia')->name('apariencia');
+
     // Mi cuenta: datos propios y cambio de contraseña (CU07).
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

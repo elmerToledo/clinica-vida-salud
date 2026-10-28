@@ -38,7 +38,7 @@
             </x-filtros>
 
             <x-tabla>
-                <thead class="bg-ambar-claro/40 text-left text-xs font-bold uppercase tracking-wider text-deep">
+                <thead class="text-left text-xs font-bold uppercase tracking-wider text-suave">
                     <tr>
                         <th class="px-5 py-4">Nombre</th>
                         <th class="px-5 py-4">Usuario</th>

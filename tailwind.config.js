@@ -3,6 +3,8 @@ import forms from '@tailwindcss/forms';
 
 /** @type {import('tailwindcss').Config} */
 export default {
+    darkMode: 'class',
+
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
@@ -17,11 +19,16 @@ export default {
             },
             colors: {
                 // Paleta de Clínica Santa Aurora
-                fondo: '#f6f4ef',
-                tinta: '#16202e',
-                suave: '#5b6676',
-                linea: '#e3dfd6',
-                primary: '#0b6b74',
+                // Colores que cambian con el tema (claro/oscuro): ver variables --c-* en resources/css/app.css
+                fondo: 'rgb(var(--c-fondo) / <alpha-value>)',
+                tinta: 'rgb(var(--c-tinta) / <alpha-value>)',
+                suave: 'rgb(var(--c-suave) / <alpha-value>)',
+                linea: 'rgb(var(--c-linea) / <alpha-value>)',
+                tarjeta: 'rgb(var(--c-tarjeta) / <alpha-value>)',
+                tenue: 'rgb(var(--c-tenue) / <alpha-value>)',
+                primary: 'rgb(var(--c-primary) / <alpha-value>)',
+                'sobre-primary': 'rgb(var(--c-sobre-primary) / <alpha-value>)',
+                // Colores fijos (no cambian con el tema)
                 deep: '#083f45',
                 crema: '#f6f4ef',
                 ambar: '#e8963e',
