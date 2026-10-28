@@ -27,7 +27,20 @@ class PacienteController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('pacientes.index', compact('pacientes', 'estado'));
+        // Ficha rápida: el paciente elegido con ?ver=ID (por defecto, el primero de la página).
+        $seleccionado = $pacientes->firstWhere('id', (int) $request->query('ver')) ?? $pacientes->first();
+        $seleccionado?->load(['citas' => fn ($q) => $q->with(['medico', 'especialidad'])
+            ->orderByDesc('fecha')->orderByDesc('hora_inicio')->limit(5)]);
+
+        $resumen = [
+            'total' => Paciente::count(),
+            'activos' => Paciente::where('activo', true)->count(),
+            'inactivos' => Paciente::where('activo', false)->count(),
+            'conCitaHoy' => \App\Models\Cita::where('fecha', app(\App\Services\CitaService::class)->hoy())
+                ->where('estado', '!=', 'cancelada')->distinct('paciente_id')->count('paciente_id'),
+        ];
+
+        return view('pacientes.index', compact('pacientes', 'estado', 'seleccionado', 'resumen'));
     }
 
     /** CU08: formulario de registro. */

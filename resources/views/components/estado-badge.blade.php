@@ -2,7 +2,7 @@
 @props(['activo' => true])
 
 @if ($activo)
-    <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-ok">Activo</span>
+    <span class="inline-flex items-center gap-1.5 rounded-full bg-[rgb(var(--c-ok)/.14)] px-3 py-1 text-sm font-semibold text-[rgb(var(--c-ok))]"><span class="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true"></span>Activo</span>
 @else
-    <span class="inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-600">Inactivo</span>
+    <span class="inline-flex items-center gap-1.5 rounded-full bg-tenue px-3 py-1 text-sm font-semibold text-suave"><span class="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true"></span>Inactivo</span>
 @endif

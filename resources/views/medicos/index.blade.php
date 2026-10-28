@@ -39,40 +39,41 @@
                 </div>
             </x-filtros>
 
-            <x-tabla>
-                <thead class="bg-ambar-claro/40 text-left text-xs font-bold uppercase tracking-wider text-deep">
-                    <tr>
-                        <th class="px-5 py-4">Código</th>
-                        <th class="px-5 py-4">Médico</th>
-                        <th class="px-5 py-4">Especialidades</th>
-                        <th class="px-5 py-4 hidden md:table-cell">Registro profesional</th>
-                        <th class="px-5 py-4 hidden lg:table-cell">Teléfono</th>
-                        <th class="px-5 py-4">Estado</th>
-                        @if (auth()->user()->tieneRol('administrador'))
-                            <th class="px-5 py-4 text-right">Acciones</th>
-                        @endif
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-linea">
-                    @forelse ($medicos as $medico)
-                        <tr class="{{ $medico->activo ? '' : 'opacity-60' }}">
-                            <td class="px-5 py-4 whitespace-nowrap">{{ $medico->codigo }}</td>
-                            <td class="px-5 py-4 font-medium">{{ $medico->apellidos }}, {{ $medico->nombres }}</td>
-                            <td class="px-5 py-4">
-                                <div class="flex flex-wrap gap-1">
-                                    @foreach ($medico->especialidades as $especialidad)
-                                        <span class="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-800">{{ $especialidad->nombre }}</span>
-                                    @endforeach
+            @php($esAdmin = auth()->user()->tieneRol('administrador'))
+            @if ($medicos->isEmpty())
+                <div class="card-soft p-10 text-center text-suave">No se encontraron médicos.</div>
+            @else
+                <!-- Directorio de médicos en tarjetas -->
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    @foreach ($medicos as $medico)
+                        <article class="card-soft flex flex-col gap-4 p-5 {{ $medico->activo ? '' : 'opacity-70' }}">
+                            <div class="flex items-start gap-4">
+                                <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/15 text-lg font-bold text-primary" aria-hidden="true">{{ mb_strtoupper(mb_substr($medico->nombres, 0, 1) . mb_substr($medico->apellidos, 0, 1)) }}</span>
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="truncate text-base font-bold text-tinta">{{ $medico->nombres }} {{ $medico->apellidos }}</h3>
+                                    <p class="text-sm text-suave">{{ $medico->codigo }} · Reg. {{ $medico->registro_profesional }}</p>
+                                    <p class="text-sm text-suave">Tel. {{ $medico->telefono }}</p>
                                 </div>
-                            </td>
-                            <td class="px-5 py-4 hidden md:table-cell whitespace-nowrap">{{ $medico->registro_profesional }}</td>
-                            <td class="px-5 py-4 hidden lg:table-cell whitespace-nowrap">{{ $medico->telefono }}</td>
-                            <td class="px-5 py-4"><x-estado-badge :activo="$medico->activo" /></td>
-                            @if (auth()->user()->tieneRol('administrador'))
-                                <td class="px-5 py-4 text-right whitespace-nowrap space-x-1">
-                                    <a href="{{ route('medicos.edit', $medico) }}" class="accion">Editar</a>
-                                    <a href="{{ route('horarios.index', ['medico' => $medico->id]) }}" class="font-medium text-gray-600 hover:text-gray-900">Horarios</a>
-                                    <form method="POST" action="{{ route('medicos.estado', $medico) }}" class="inline"
+                                <x-estado-badge :activo="$medico->activo" />
+                            </div>
+
+                            <div class="flex flex-wrap gap-1.5">
+                                @forelse ($medico->especialidades as $especialidad)
+                                    <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">{{ $especialidad->nombre }}</span>
+                                @empty
+                                    <span class="text-xs text-suave">Sin especialidades</span>
+                                @endforelse
+                            </div>
+
+                            <div class="mt-auto flex flex-wrap items-center gap-2 border-t border-linea pt-4">
+                                @if ($esAdmin)
+                                    <a href="{{ route('medicos.edit', $medico) }}" class="inline-flex h-9 items-center rounded-lg border border-linea px-3 text-sm font-semibold text-tinta hover:bg-tenue">Editar</a>
+                                @endif
+                                <a href="{{ route('horarios.index', ['medico' => $medico->id]) }}" class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-linea px-3 text-sm font-semibold text-tinta hover:bg-tenue">
+                                    <x-icono nombre="clock" class="h-4 w-4" /> Horarios
+                                </a>
+                                @if ($esAdmin)
+                                    <form method="POST" action="{{ route('medicos.estado', $medico) }}" class="ml-auto"
                                           onsubmit="return confirm('{{ $medico->activo ? '¿Desactivar este médico? Ya no recibirá citas nuevas; su historial se conserva.' : '¿Activar este médico?' }}');">
                                         @csrf
                                         @method('PATCH')
@@ -80,16 +81,12 @@
                                             {{ $medico->activo ? 'Desactivar' : 'Activar' }}
                                         </button>
                                     </form>
-                                </td>
-                            @endif
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">No se encontraron médicos.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </x-tabla>
+                                @endif
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
 
             <div>{{ $medicos->links() }}</div>
         </div>

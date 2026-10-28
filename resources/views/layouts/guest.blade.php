@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="tema">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,10 +7,12 @@
 
         <title>{{ config('app.name', 'Clínica Santa Aurora') }}</title>
 
+        @include('layouts.tema-script')
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -32,7 +34,7 @@
             <div class="flex min-h-screen flex-col items-center justify-center px-4 py-8 lg:min-h-0">
                 <a href="{{ url('/') }}" class="mb-6 lg:hidden"><x-logo-aurora /></a>
 
-                <div class="w-full max-w-md rounded-2xl border border-linea bg-white px-6 py-7 shadow-sm sm:px-8">
+                <div class="w-full max-w-md rounded-2xl border border-linea bg-tarjeta px-6 py-7 shadow-sm sm:px-8">
                     {{ $slot }}
                 </div>
 

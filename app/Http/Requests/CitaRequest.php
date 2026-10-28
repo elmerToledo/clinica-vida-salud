@@ -18,6 +18,14 @@ class CitaRequest extends FormRequest
         return true;
     }
 
+    /** Un paciente reserva siempre a su propio nombre: se ignora el paciente que venga en el formulario. */
+    protected function prepareForValidation(): void
+    {
+        if ($this->user()?->tieneRol('paciente')) {
+            $this->merge(['paciente_id' => $this->user()->paciente?->id]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -33,7 +41,7 @@ class CitaRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'paciente_id.required' => 'Seleccione un paciente.',
+            'paciente_id.required' => 'Seleccione un paciente. Si es paciente, complete primero su perfil.',
             'medico_id.required' => 'Seleccione un médico.',
             'especialidad_id.required' => 'Seleccione la especialidad de la consulta.',
             'fecha.date_format' => 'Indique una fecha válida.',

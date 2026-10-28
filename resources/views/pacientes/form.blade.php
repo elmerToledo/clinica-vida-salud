@@ -2,9 +2,8 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2>
-            {{ $editando ? 'Modificar paciente ' . $paciente->codigo : 'Nuevo paciente' }}
-        </h2>
+        <h2>{{ $editando ? 'Modificar paciente ' . $paciente->codigo : 'Registrar paciente' }}</h2>
+        <p>{{ $editando ? 'Actualice los datos del paciente.' : 'Complete los datos para dar de alta al paciente.' }}</p>
     </x-slot>
 
     <div class="py-6 sm:py-10">
@@ -17,7 +16,7 @@
                 @endif
 
                 @if ($errors->any())
-                    <div role="alert" class="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                    <div role="alert" class="rounded-md border border-[rgb(var(--c-peligro)/.4)] bg-[rgb(var(--c-peligro)/.1)] p-3 text-sm text-[rgb(var(--c-peligro))]">
                         Revise los campos marcados: hay datos que no se pudieron guardar.
                     </div>
                 @endif

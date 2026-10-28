@@ -152,16 +152,18 @@ it('lleva al formulario solo si el bloque sigue libre', function () {
     $this->actingAs($this->recepcion)->get($url . '09:00')->assertRedirect();
 });
 
-it('solo la recepcionista registra citas; el paciente consulta disponibilidad pero no registra (RN12)', function () {
+it('solo la recepcionista y el paciente registran citas; administrador y médico no (RN12)', function () {
     $admin = User::factory()->administrador()->create();
     $medicoUsuario = User::factory()->medico()->create();
     $pacienteUsuario = User::factory()->paciente()->create();
 
-    foreach ([$admin, $medicoUsuario, $pacienteUsuario] as $usuario) {
+    foreach ([$admin, $medicoUsuario] as $usuario) {
         $this->actingAs($usuario)->post('/citas', datosCita($this))->assertForbidden();
         $this->actingAs($usuario)->get('/citas/nueva')->assertForbidden();
     }
 
+    // El paciente sin ficha no puede reservar: se le pide completar su perfil.
+    $this->actingAs($pacienteUsuario)->post('/citas', datosCita($this))->assertSessionHasErrors('paciente_id');
     $this->actingAs($pacienteUsuario)->get('/citas/disponibilidad')->assertOk();
     $this->actingAs($admin)->get('/citas/disponibilidad')->assertForbidden();
     $this->actingAs($pacienteUsuario)->get('/citas')->assertForbidden();

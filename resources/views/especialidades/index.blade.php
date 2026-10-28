@@ -1,7 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2>Áreas de <em>especialidad</em></h2>
+            <div>
+                <h2>Especialidades</h2>
+                <p>Catálogo de áreas médicas de la clínica.</p>
+            </div>
             @if (auth()->user()->tieneRol('administrador'))
                 <x-boton :href="route('especialidades.create')">Nueva especialidad</x-boton>
             @endif
@@ -30,7 +33,7 @@
             </x-filtros>
 
             <x-tabla>
-                <thead class="bg-ambar-claro/40 text-left text-xs font-bold uppercase tracking-wider text-deep">
+                <thead class="text-left text-xs font-bold uppercase tracking-wider text-suave">
                     <tr>
                         <th class="px-5 py-4">Especialidad</th>
                         <th class="px-5 py-4 hidden md:table-cell">Descripción</th>
@@ -69,7 +72,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-gray-500">No se encontraron especialidades.</td>
+                            <td colspan="5" class="px-4 py-8 text-center text-suave">No se encontraron especialidades.</td>
                         </tr>
                     @endforelse
                 </tbody>

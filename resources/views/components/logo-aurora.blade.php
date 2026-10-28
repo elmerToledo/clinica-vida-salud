@@ -9,7 +9,7 @@
         <path d="M20 9v3M11.5 13l2 2M28.5 13l-2 2" stroke="#e8963e" stroke-width="2" stroke-linecap="round"/>
     </svg>
     @if ($texto)
-        <span class="font-display text-xl font-semibold leading-none {{ $light ? 'text-crema' : 'text-deep' }}">
+        <span class="font-display text-xl font-semibold leading-none {{ $light ? 'text-crema' : 'text-deep dark:text-tinta' }}">
             Santa Aurora
             <span class="block font-sans text-[11px] font-medium uppercase tracking-[0.18em] {{ $light ? 'text-ambar-claro' : 'text-suave' }}">Clínica médica</span>
         </span>

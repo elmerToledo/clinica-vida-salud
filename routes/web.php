@@ -7,7 +7,9 @@ use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\HorarioAtencionController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MedicoController;
+use App\Http\Controllers\MisCitasController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PerfilPacienteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +19,9 @@ Route::get('/', LandingController::class)->name('inicio');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    // Apariencia: tema claro/oscuro y color de acento (se guardan en el navegador).
+    Route::view('/apariencia', 'apariencia')->name('apariencia');
 
     // Mi cuenta: datos propios y cambio de contraseña (CU07).
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -44,6 +49,17 @@ Route::middleware('auth')->group(function () {
     Route::patch('pacientes/{paciente}/estado', [PacienteController::class, 'cambiarEstado'])
         ->middleware('rol:administrador')
         ->name('pacientes.estado');
+
+    // ---- Historial de citas de un paciente (CU32): Administrador y Recepcionista ----
+    Route::get('pacientes/{paciente}/historial', [CitaController::class, 'historialPaciente'])
+        ->middleware('rol:administrador,recepcionista')->whereNumber('paciente')->name('pacientes.historial');
+
+    // ---- Perfil del paciente (CU34, CU36): cada paciente ve solo lo propio ----
+    Route::middleware('rol:paciente')->group(function () {
+        Route::get('mis-citas', [MisCitasController::class, 'index'])->name('mis-citas.index');
+        Route::get('mi-perfil', [PerfilPacienteController::class, 'edit'])->name('perfil.edit');
+        Route::put('mi-perfil', [PerfilPacienteController::class, 'update'])->name('perfil.update');
+    });
 
     // ---- Médicos (CU12-CU15): Recepcionista solo consulta (CU13) ----
     Route::resource('medicos', MedicoController::class)
@@ -78,17 +94,28 @@ Route::middleware('auth')->group(function () {
         Route::patch('horarios/{horario}/estado', [HorarioAtencionController::class, 'cambiarEstado'])->name('horarios.estado');
     });
 
-    // ---- Citas (CU24-CU32): disponibilidad la consultan Recepcionista y Paciente; registrar, solo Recepcionista ----
+    // ---- Citas (CU24-CU32): disponibilidad, registro y reserva en línea (Recepcionista y Paciente) ----
     Route::get('citas/disponibilidad', [CitaController::class, 'disponibilidad'])
         ->middleware('rol:recepcionista,paciente')
         ->name('citas.disponibilidad');
-    Route::middleware('rol:recepcionista')->group(function () {
+    Route::middleware('rol:recepcionista,paciente')->group(function () {
         Route::get('citas/nueva', [CitaController::class, 'create'])->name('citas.create');
         Route::post('citas', [CitaController::class, 'store'])->name('citas.store');
     });
     Route::get('citas', [CitaController::class, 'index'])
         ->middleware('rol:administrador,recepcionista,medico')
         ->name('citas.index');
+    Route::get('citas/{cita}', [CitaController::class, 'show'])->whereNumber('cita')->name('citas.show');
+    Route::middleware('rol:recepcionista')->group(function () {
+        Route::get('citas/{cita}/reprogramar', [CitaController::class, 'reprogramarForm'])->whereNumber('cita')->name('citas.reprogramar');
+        Route::patch('citas/{cita}/reprogramar', [CitaController::class, 'reprogramar'])->whereNumber('cita');
+        Route::patch('citas/{cita}/confirmar', [CitaController::class, 'confirmar'])->whereNumber('cita')->name('citas.confirmar');
+        Route::patch('citas/{cita}/asistencia', [CitaController::class, 'asistencia'])->whereNumber('cita')->name('citas.asistencia');
+    });
+    Route::patch('citas/{cita}/cancelar', [CitaController::class, 'cancelar'])
+        ->middleware('rol:recepcionista,paciente')->whereNumber('cita')->name('citas.cancelar');
+    Route::patch('citas/{cita}/atender', [CitaController::class, 'atender'])
+        ->middleware('rol:medico')->whereNumber('cita')->name('citas.atender');
 });
 
 require __DIR__.'/auth.php';

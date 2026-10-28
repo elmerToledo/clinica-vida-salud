@@ -2,10 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Colores que cambian con el tema. Se escriben como "R G B" para que Tailwind pueda usar
+ * transparencias (bg-primary/10). La portada (landing) conserva los valores de :root;
+ * el sistema interno usa html.tema (claro) y html.tema.dark (oscuro).
+ */
+:root {
+    --c-fondo: 246 244 239; --c-tinta: 22 32 46; --c-suave: 91 102 118; --c-linea: 227 223 214;
+    --c-tarjeta: 255 255 255; --c-tenue: 246 244 239;
+    --c-primary: 11 107 116; --c-primary-hover: 8 63 69; --c-sobre-primary: 255 255 255;
+    --c-campo: 207 201 188; --c-peligro: 163 35 28; --c-ok: 31 107 67;
+    --c-warn: 146 64 14; --c-info: 30 64 175; --c-peligro-bg: 185 28 28; --c-peligro-texto: 255 255 255;
+}
+html.tema {
+    --c-fondo: 243 247 246; --c-tinta: 18 49 45; --c-suave: 77 101 96; --c-linea: 223 233 230;
+    --c-tarjeta: 255 255 255; --c-tenue: 234 242 240;
+    --c-primary: 15 118 110; --c-primary-hover: 11 94 88; --c-sobre-primary: 255 255 255;
+    --c-campo: 200 214 210; --c-peligro: 185 28 28; --c-ok: 22 101 52;
+    font-family: "Public Sans", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+html.tema.dark {
+    --c-fondo: 12 23 22; --c-tinta: 230 242 239; --c-suave: 157 181 176; --c-linea: 34 54 51;
+    --c-tarjeta: 19 33 31; --c-tenue: 26 44 41;
+    --c-primary: 45 212 191; --c-primary-hover: 94 234 212; --c-sobre-primary: 6 32 29;
+    --c-campo: 52 78 74; --c-peligro: 252 165 165; --c-ok: 134 239 172;
+    --c-warn: 252 211 77; --c-info: 147 197 253; --c-peligro-bg: 252 165 165; --c-peligro-texto: 42 7 7;
+    color-scheme: dark;
+}
+/* Colores de acento (se eligen en Apariencia); el verde azulado es el valor por defecto. */
+html.tema[data-acento="azul"] { --c-primary: 37 99 235; --c-primary-hover: 29 78 216; }
+html.tema[data-acento="verde"] { --c-primary: 22 163 74; --c-primary-hover: 21 128 61; }
+html.tema[data-acento="vino"] { --c-primary: 159 18 57; --c-primary-hover: 131 24 67; }
+html.tema.dark[data-acento="azul"] { --c-primary: 96 165 250; --c-primary-hover: 147 197 253; --c-sobre-primary: 8 22 48; }
+html.tema.dark[data-acento="verde"] { --c-primary: 74 222 128; --c-primary-hover: 134 239 172; --c-sobre-primary: 5 36 18; }
+html.tema.dark[data-acento="vino"] { --c-primary: 244 114 182; --c-primary-hover: 249 168 212; --c-sobre-primary: 46 8 24; }
+
+
 @layer base {
     html { scroll-behavior: smooth; }
-    body { background-color: #f6f4ef; color: #16202e; }
+    body { background-color: rgb(var(--c-fondo)); color: rgb(var(--c-tinta)); }
     h1, h2, h3 { font-family: Fraunces, Georgia, serif; }
+    /* Sistema interno: tipografía sans en todo (como el diseño aprobado) */
+    html.tema body, html.tema h1, html.tema h2, html.tema h3, html.tema .font-display,
+    html.tema .hero-banner h2 { font-family: "Public Sans", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif; }
+    html.tema .hero-banner h2 em { font-style: normal; }
 }
 
 /* Botones de la clínica (landing, login y pantallas del sistema) */
@@ -17,25 +57,25 @@
         transition: background-color .2s, transform .2s, color .2s;
     }
     .btn:focus-visible { outline: 3px solid #e8963e; outline-offset: 2px; }
-    .btn-primary { background: #0b6b74; color: #fff; }
-    .btn-primary:hover { background: #083f45; }
+    .btn-primary { background: rgb(var(--c-primary)); color: rgb(var(--c-sobre-primary)); }
+    .btn-primary:hover { background: rgb(var(--c-primary-hover)); }
     .btn-amber { background: #e8963e; color: #16202e; }
     .btn-amber:hover { background: #f4d9b5; }
     .btn-ghost-light { border: 1.5px solid rgb(246 244 239 / .5); color: #f6f4ef; }
     .btn-ghost-light:hover { background: rgb(246 244 239 / .12); }
-    .btn-outline { border: 1.5px solid #0b6b74; color: #0b6b74; }
-    .btn-outline:hover { background: rgb(11 107 116 / .08); }
+    .btn-outline { border: 1.5px solid rgb(var(--c-primary)); color: rgb(var(--c-primary)); }
+    .btn-outline:hover { background: rgb(var(--c-primary) / .1); }
 
     /* ---- Panel interno ---- */
 
     /* Tarjetas */
     .card-soft {
-        background: #fff; border: 1px solid #e3dfd6; border-radius: 22px;
+        background: rgb(var(--c-tarjeta)); border: 1px solid rgb(var(--c-linea)); border-radius: 22px;
         box-shadow: 0 1px 2px rgb(22 32 46 / .04);
     }
     .card-lift { transition: transform .2s ease, box-shadow .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -24px rgb(8 63 69 / .45); }
-    .card-soft tbody tr:hover { background: #f6f4ef; }
+    .card-soft tbody tr:hover { background: rgb(var(--c-tenue)); }
 
     /* Banner de cada pantalla */
     .hero-banner {
@@ -81,22 +121,22 @@
     /* Campos de formulario del sistema */
     .campo {
         display: block; width: 100%; min-height: 48px; padding-left: 1rem;
-        border-radius: 16px; border: 1px solid #cfc9bc; background: #fff; font-size: 1rem;
+        border-radius: 16px; border: 1px solid rgb(var(--c-campo)); background: rgb(var(--c-tarjeta)); color: rgb(var(--c-tinta)); font-size: 1rem;
     }
-    .campo:focus { border-color: #0b6b74; outline: none; box-shadow: 0 0 0 3px rgb(232 150 62 / .45); }
+    .campo:focus { border-color: rgb(var(--c-primary)); outline: none; box-shadow: 0 0 0 3px rgb(232 150 62 / .45); }
 
     /* Acciones dentro de las tablas */
     .accion {
         display: inline-flex; align-items: center; min-height: 40px; padding: 0 .9rem;
-        border-radius: 9999px; font-weight: 600; font-size: .95rem; color: #0b6b74;
+        border-radius: 9999px; font-weight: 600; font-size: .95rem; color: rgb(var(--c-primary));
         transition: background-color .2s;
     }
-    .accion:hover { background: #e3f1f2; }
+    .accion:hover { background: rgb(var(--c-primary) / .12); }
     .accion:focus-visible { outline: 3px solid #e8963e; outline-offset: 1px; }
-    .accion-peligro { color: #a3231c; }
-    .accion-peligro:hover { background: #fbeceb; }
-    .accion-ok { color: #1f6b43; }
-    .accion-ok:hover { background: #e6f2ea; }
+    .accion-peligro { color: rgb(var(--c-peligro)); }
+    .accion-peligro:hover { background: rgb(var(--c-peligro) / .12); }
+    .accion-ok { color: rgb(var(--c-ok)); }
+    .accion-ok:hover { background: rgb(var(--c-ok) / .12); }
 }
 
 /* Carrusel automático (se detiene al pasar el mouse o si el usuario pide menos movimiento) */
@@ -108,3 +148,42 @@
 }
 
 [x-cloak] { display: none !important; }
+
+/* ---- Modo oscuro: clases fijas de las vistas existentes ---- */
+html.dark .bg-white { background-color: rgb(var(--c-tarjeta)); }
+html.dark .bg-gray-50, html.dark .bg-gray-100 { background-color: rgb(var(--c-tenue)); }
+html.dark .bg-gray-200 { background-color: rgb(var(--c-linea)); }
+html.dark .text-gray-900, html.dark .text-gray-800, html.dark .text-gray-700 { color: rgb(var(--c-tinta)); }
+html.dark .text-gray-600, html.dark .text-gray-500, html.dark .text-gray-400 { color: rgb(var(--c-suave)); }
+html.dark .border-gray-200, html.dark .border-gray-300, html.dark .border-gray-400 { border-color: rgb(var(--c-linea)); }
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgb(var(--c-linea)); }
+html.dark .text-deep { color: rgb(var(--c-tinta)); }
+html.dark .bg-teal-50, html.dark .bg-teal-100, html.dark .bg-ambar-claro { background-color: rgb(var(--c-primary) / .15); }
+html.dark .text-teal-700, html.dark .text-teal-800 { color: rgb(var(--c-primary)); }
+html.dark .bg-red-50, html.dark .bg-red-100 { background-color: rgb(59 20 20); }
+html.dark .border-red-200, html.dark .border-red-300 { border-color: rgb(127 29 29); }
+html.dark .text-red-600, html.dark .text-red-700, html.dark .text-red-800 { color: rgb(252 165 165); }
+html.dark .bg-green-50, html.dark .bg-green-100 { background-color: rgb(15 46 28); }
+html.dark .border-green-200, html.dark .border-green-300 { border-color: rgb(22 101 52); }
+html.dark .text-green-600, html.dark .text-green-800 { color: rgb(134 239 172); }
+/* Formularios (plugin @tailwindcss/forms) */
+html.dark input:not([type=checkbox]):not([type=radio]):not([type=submit]),
+html.dark select, html.dark textarea {
+    background-color: rgb(var(--c-tarjeta)); color: rgb(var(--c-tinta)); border-color: rgb(var(--c-campo));
+}
+html.dark ::placeholder { color: rgb(var(--c-suave)); }
+
+/* ---- Sistema interno: encabezado sobrio de página (reemplaza el banner con degradado) ---- */
+html.tema .hero-banner { background: none; box-shadow: none; border-radius: 0; color: rgb(var(--c-tinta)); padding: 0 !important; overflow: visible; isolation: auto; }
+html.tema .hero-banner::before, html.tema .hero-banner::after { display: none; }
+html.tema .hero-banner > div { min-height: 0 !important; max-width: none !important; }
+html.tema .hero-banner h2 { color: rgb(var(--c-tinta)); font-size: 1.625rem; line-height: 2rem; font-weight: 700; letter-spacing: -.01em; }
+html.tema .hero-banner h2 em { color: inherit; }
+html.tema .hero-banner p { color: rgb(var(--c-suave)); font-size: 1rem; margin-top: .25rem; }
+html.tema .hero-banner > .hero-photos { display: none !important; }
+html.tema .card-soft { border-radius: 16px; }
+html.tema .card-lift:hover { transform: none; box-shadow: 0 8px 24px -16px rgb(var(--c-tinta) / .35); }
+
+/* Tablas: encabezado discreto, como en el diseño aprobado */
+html.tema thead { background: rgb(var(--c-tenue)); color: rgb(var(--c-suave)); }
+html.tema thead th { font-weight: 600; }
