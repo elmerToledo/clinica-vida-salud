@@ -25,7 +25,7 @@
             </a>
         @endif
         @if ($u->tieneRol('recepcionista', 'paciente'))
-            <a href="{{ route('citas.disponibilidad') }}" class="hidden h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-sobre-primary hover:opacity-90 sm:inline-flex">
+            <a href="{{ route($u->tieneRol('recepcionista') ? 'citas.paciente' : 'citas.disponibilidad') }}" class="hidden h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-sobre-primary hover:opacity-90 sm:inline-flex">
                 <x-icono nombre="calendar-plus" class="h-4 w-4" /> {{ $u->tieneRol('paciente') ? 'Reservar cita' : 'Agendar cita' }}
             </a>
         @endif

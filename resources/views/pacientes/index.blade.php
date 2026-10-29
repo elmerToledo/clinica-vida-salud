@@ -139,7 +139,7 @@
 
                         <div class="mt-5 flex flex-wrap gap-2">
                             @if (auth()->user()->tieneRol('recepcionista') && $seleccionado->activo)
-                                <x-boton :href="route('citas.disponibilidad')">Agendar cita</x-boton>
+                                <x-boton :href="route('citas.disponibilidad', ['paciente' => $seleccionado->id])">Agendar cita</x-boton>
                             @endif
                             <x-boton tipo="secundario" :href="route('pacientes.historial', $seleccionado)">Historial</x-boton>
                             <x-boton tipo="secundario" :href="route('pacientes.edit', $seleccionado)">Editar</x-boton>

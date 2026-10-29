@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CitaRequest;
 use App\Models\Cita;
+use App\Models\Especialidad;
 use App\Models\Medico;
 use App\Models\Paciente;
 use App\Models\User;
@@ -23,25 +24,57 @@ class CitaController extends Controller
     {
     }
 
-    /** CU24: bloques libres y ocupados de un médico en una fecha. */
+    /** Paso 1 del asistente (solo recepción): elegir al paciente. */
+    public function elegirPaciente(Request $request): View
+    {
+        $q = trim((string) $request->query('q'));
+
+        $pacientes = Paciente::activos()
+            ->buscar($q)
+            ->when($q === '', fn ($c) => $c->orderByDesc('id'), fn ($c) => $c->orderBy('apellidos')->orderBy('nombres'))
+            ->limit(8)
+            ->get();
+
+        return view('citas.paciente', compact('pacientes', 'q'));
+    }
+
+    /** CU24 (paso 2): especialidad, médico, fecha y bloques libres. */
     public function disponibilidad(Request $request): View
     {
-        $medicos = Medico::activos()->with('especialidades')->orderBy('apellidos')->orderBy('nombres')->get();
-        $medico = $medicos->firstWhere('id', (int) $request->query('medico'));
+        $usuario = $request->user();
+
+        $todos = Medico::activos()->with('especialidades')->orderBy('apellidos')->orderBy('nombres')->get();
+        $medico = $todos->firstWhere('id', (int) $request->query('medico'));
         $fecha = $this->fechaValida($request->query('fecha')) ?? $this->citas->hoy();
+
+        $especialidades = Especialidad::activas()
+            ->whereHas('medicos', fn ($q) => $q->where('medicos.activo', true))
+            ->orderBy('nombre')
+            ->get();
+        $especialidad = $especialidades->firstWhere('id', (int) $request->query('especialidad'));
+        $medicos = $especialidad
+            ? $todos->filter(fn ($m) => $m->especialidades->contains('id', $especialidad->id))->values()
+            : $todos;
+
+        $pacienteElegido = $usuario->tieneRol('recepcionista')
+            ? Paciente::activos()->find((int) $request->query('paciente'))
+            : null;
 
         return view('citas.disponibilidad', [
             'medicos' => $medicos,
             'medico' => $medico,
+            'especialidades' => $especialidades,
+            'especialidad' => $especialidad,
+            'pacienteElegido' => $pacienteElegido,
             'fecha' => $fecha,
             'hoy' => $this->citas->hoy(),
             'bloques' => $medico ? $this->citas->bloques($medico, $fecha) : collect(),
-            'puedeReservar' => $request->user()->tieneRol('recepcionista', 'paciente'),
-            'sinPerfil' => $request->user()->tieneRol('paciente') && ! $request->user()->paciente,
+            'puedeReservar' => $usuario->tieneRol('recepcionista', 'paciente'),
+            'sinPerfil' => $usuario->tieneRol('paciente') && ! $usuario->paciente,
         ]);
     }
 
-    /** CU25 y CU35: formulario para el bloque elegido en la disponibilidad. */
+    /** CU25 y CU35 (paso 3): confirmación del bloque elegido en la disponibilidad. */
     public function create(Request $request): View|RedirectResponse
     {
         $usuario = $request->user();
@@ -56,9 +89,11 @@ class CitaController extends Controller
             ->find((int) $request->query('medico'));
         $fecha = $this->fechaValida($request->query('fecha'));
         $hora = (string) $request->query('hora');
+        $pacienteElegido = $esPaciente ? null : Paciente::activos()->find((int) $request->query('paciente'));
 
         if (! $medico || ! $fecha || ! preg_match('/^\d{2}:\d{2}$/', $hora)) {
-            return redirect()->route('citas.disponibilidad')->with('error', 'Elija primero un médico, una fecha y un bloque libre.');
+            return redirect()->route('citas.disponibilidad', array_filter(['paciente' => $pacienteElegido?->id]))
+                ->with('error', 'Elija primero un médico, una fecha y un bloque libre.');
         }
 
         // El bloque pudo ocuparse mientras se miraba la pantalla.
@@ -66,7 +101,7 @@ class CitaController extends Controller
             $bloque = $this->citas->bloqueDisponible($medico, $fecha, $hora);
         } catch (ValidationException $e) {
             return redirect()
-                ->route('citas.disponibilidad', ['medico' => $medico->id, 'fecha' => $fecha])
+                ->route('citas.disponibilidad', array_filter(['medico' => $medico->id, 'fecha' => $fecha, 'paciente' => $pacienteElegido?->id]))
                 ->with('error', collect($e->errors())->flatten()->first());
         }
 
@@ -74,8 +109,10 @@ class CitaController extends Controller
             'medico' => $medico,
             'fecha' => $fecha,
             'bloque' => $bloque,
-            'pacientes' => $esPaciente ? null : Paciente::activos()->orderBy('apellidos')->orderBy('nombres')->get(),
+            'pacientes' => ($esPaciente || $pacienteElegido) ? null : Paciente::activos()->orderBy('apellidos')->orderBy('nombres')->get(),
             'miPaciente' => $esPaciente ? $usuario->paciente : null,
+            'pacienteElegido' => $pacienteElegido,
+            'especialidadElegida' => (int) $request->query('especialidad'),
         ]);
     }
 
@@ -86,12 +123,13 @@ class CitaController extends Controller
         $mensaje = "Cita {$cita->codigo} registrada para el {$cita->fecha->format('d/m/Y')} a las {$cita->inicio}.";
 
         if ($request->user()->tieneRol('paciente')) {
-            return redirect()->route('mis-citas.index')->with('exito', $mensaje);
+            return redirect()->route('mis-citas.index')->with('exito', $mensaje)->with('cita_id', $cita->id);
         }
 
         return redirect()
             ->route('citas.index', ['desde' => $cita->fecha->toDateString(), 'hasta' => $cita->fecha->toDateString()])
-            ->with('exito', $mensaje);
+            ->with('exito', $mensaje)
+            ->with('cita_id', $cita->id);
     }
 
     /** CU31: agenda por médico, fecha y estado. Un médico solo ve sus propias citas. */

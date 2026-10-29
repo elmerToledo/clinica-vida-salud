@@ -23,6 +23,9 @@ Route::middleware('auth')->group(function () {
     // Apariencia: tema claro/oscuro y color de acento (se guardan en el navegador).
     Route::view('/apariencia', 'apariencia')->name('apariencia');
 
+    // Médicos y sus horarios de atención, a simple vista (para todos los roles).
+    Route::get('/directorio', [\App\Http\Controllers\DirectorioController::class, 'index'])->name('directorio.index');
+
     // Mi cuenta: datos propios y cambio de contraseña (CU07).
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -98,6 +101,9 @@ Route::middleware('auth')->group(function () {
     Route::get('citas/disponibilidad', [CitaController::class, 'disponibilidad'])
         ->middleware('rol:recepcionista,paciente')
         ->name('citas.disponibilidad');
+    Route::get('citas/paciente', [CitaController::class, 'elegirPaciente'])
+        ->middleware('rol:recepcionista')
+        ->name('citas.paciente');
     Route::middleware('rol:recepcionista,paciente')->group(function () {
         Route::get('citas/nueva', [CitaController::class, 'create'])->name('citas.create');
         Route::post('citas', [CitaController::class, 'store'])->name('citas.store');

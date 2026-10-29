@@ -1,15 +1,18 @@
-{{-- Indicador de los 3 pasos para reservar una cita: Médico y fecha, Horario, Confirmar. --}}
-@props(['paso' => 1])
+{{-- Pasos de la cita (vertical): 1 Paciente, 2 Médico y horario, 3 Confirmación. --}}
+@props(['paso' => 2, 'paciente' => null])
 
-<ol class="card-soft p-4 sm:p-5 flex items-center gap-2 sm:gap-4" aria-label="Pasos para agendar la cita">
-    @foreach ([1 => 'Médico y fecha', 2 => 'Horario', 3 => 'Confirmar'] as $n => $titulo)
-        <li class="flex items-center gap-2 sm:gap-3 {{ $n < 3 ? 'flex-1' : '' }}" @if ($n === $paso) aria-current="step" @endif>
-            <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold
-                {{ $n < $paso ? 'bg-primary text-sobre-primary' : ($n === $paso ? 'bg-primary text-sobre-primary ring-4 ring-primary/20' : 'bg-tenue text-suave') }}">{{ $n < $paso ? '✓' : $n }}</span>
-            <span class="text-sm font-semibold {{ $n <= $paso ? 'text-tinta' : 'text-suave' }} {{ $n === $paso ? '' : 'hidden sm:inline' }}">{{ $titulo }}</span>
-            @if ($n < 3)
-                <span class="h-px flex-1 {{ $n < $paso ? 'bg-primary' : 'bg-linea' }}" aria-hidden="true"></span>
-            @endif
+<ol class="flex gap-4 lg:flex-col lg:gap-5" aria-label="Pasos para agendar la cita">
+    @foreach ([1 => 'Paciente', 2 => 'Médico y horario', 3 => 'Confirmación'] as $n => $titulo)
+        <li class="flex items-center gap-3" @if ($n === $paso) aria-current="step" @endif>
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 text-sm font-bold
+                {{ $n < $paso ? 'border-primary bg-primary text-sobre-primary' : ($n === $paso ? 'border-primary text-primary' : 'border-linea bg-tenue text-suave') }}">{{ $n < $paso ? '✓' : $n }}</span>
+            <span class="{{ $n === $paso ? '' : 'hidden sm:block' }}">
+                <span class="block text-xs text-suave">Paso {{ $n }}</span>
+                <span class="block text-sm font-semibold {{ $n <= $paso ? 'text-tinta' : 'text-suave' }}">{{ $titulo }}</span>
+                @if ($n === 1 && $paciente && $paso > 1)
+                    <span class="block max-w-[10rem] truncate text-xs text-suave">{{ $paciente }}</span>
+                @endif
+            </span>
         </li>
     @endforeach
 </ol>
