@@ -187,3 +187,9 @@ html.tema .card-lift:hover { transform: none; box-shadow: 0 8px 24px -16px rgb(v
 /* Tablas: encabezado discreto, como en el diseño aprobado */
 html.tema thead { background: rgb(var(--c-tenue)); color: rgb(var(--c-suave)); }
 html.tema thead th { font-weight: 600; }
+
+/* Impresión de reportes: solo el contenido, sin menú ni botones. */
+@media print {
+    aside, .no-imprimir, .sticky.top-0 { display: none !important; }
+    body { background: #fff !important; }
+}

@@ -1,6 +1,6 @@
 @php
     $fecha = \Illuminate\Support\Str::ucfirst(now()->timezone('America/La_Paz')->locale('es')->translatedFormat('l j \d\e F \d\e Y'));
-    $iconos = ['usuarios.index' => 'lock', 'pacientes.index' => 'users', 'medicos.index' => 'stethoscope', 'especialidades.index' => 'heart', 'horarios.index' => 'clock', 'bitacora.index' => 'file-text', 'citas.index' => 'calendar-check', 'citas.disponibilidad' => 'calendar-check', 'mis-citas.index' => 'file-text', 'perfil.edit' => 'user-check', 'directorio.index' => 'stethoscope'];
+    $iconos = ['usuarios.index' => 'lock', 'pacientes.index' => 'users', 'medicos.index' => 'stethoscope', 'especialidades.index' => 'heart', 'horarios.index' => 'clock', 'bitacora.index' => 'file-text', 'citas.index' => 'calendar-check', 'citas.disponibilidad' => 'calendar-check', 'mis-citas.index' => 'file-text', 'perfil.edit' => 'user-check', 'directorio.index' => 'stethoscope', 'reportes.index' => 'bar-chart'];
     $primerNombre = explode(' ', trim($usuario->name))[0];
     // Colores por estado de cita (bloques de la línea de tiempo)
     $bloque = [

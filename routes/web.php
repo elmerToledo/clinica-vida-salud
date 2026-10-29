@@ -11,6 +11,7 @@ use App\Http\Controllers\MisCitasController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\PerfilPacienteController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
@@ -122,6 +123,21 @@ Route::middleware('auth')->group(function () {
         ->middleware('rol:recepcionista,paciente')->whereNumber('cita')->name('citas.cancelar');
     Route::patch('citas/{cita}/atender', [CitaController::class, 'atender'])
         ->middleware('rol:medico')->whereNumber('cita')->name('citas.atender');
+
+    // ---- Reportes (CU37-CU42): solo consulta. Recepción: CU37, CU38 y CU40; administrador: los seis ----
+    Route::prefix('reportes')->name('reportes.')->group(function () {
+        Route::middleware('rol:administrador,recepcionista')->group(function () {
+            Route::get('/', [ReporteController::class, 'index'])->name('index');
+            Route::get('citas-por-fecha', [ReporteController::class, 'porFecha'])->name('fecha');
+            Route::get('citas-por-medico', [ReporteController::class, 'porMedico'])->name('medico');
+            Route::get('citas-por-estado', [ReporteController::class, 'porEstado'])->name('estado');
+        });
+        Route::middleware('rol:administrador')->group(function () {
+            Route::get('citas-por-especialidad', [ReporteController::class, 'porEspecialidad'])->name('especialidad');
+            Route::get('pacientes-registrados', [ReporteController::class, 'pacientes'])->name('pacientes');
+            Route::get('atendidas-canceladas', [ReporteController::class, 'periodo'])->name('periodo');
+        });
+    });
 });
 
 require __DIR__.'/auth.php';
