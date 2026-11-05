@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Cita médica (RF06 a RF12).
@@ -40,6 +41,7 @@ class Cita extends Model
         'fecha',
         'hora_inicio',
         'hora_fin',
+        'ficha',
         'estado',
         'motivo_consulta',
         'motivo_cancelacion',
@@ -81,6 +83,12 @@ class Cita extends Model
     public function especialidad(): BelongsTo
     {
         return $this->belongsTo(Especialidad::class);
+    }
+
+    /** Pago de la cita (CU49); una cita tiene como máximo uno. */
+    public function pago(): HasOne
+    {
+        return $this->hasOne(Pago::class);
     }
 
     public function creador(): BelongsTo

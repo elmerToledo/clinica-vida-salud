@@ -38,6 +38,17 @@
                         <dt class="text-xs font-bold uppercase tracking-wider text-deep">Médico</dt>
                         <dd class="mt-1">{{ $cita->medico->nombres }} {{ $cita->medico->apellidos }}<br><span class="text-gray-500">{{ $cita->especialidad->nombre }}</span></dd>
                     </div>
+                    <div>
+                        <dt class="text-xs font-bold uppercase tracking-wider text-deep">Ficha de atención</dt>
+                        <dd class="mt-1">
+                            @if ($cita->ficha)
+                                <span class="text-lg font-bold text-gray-900">N.º {{ $cita->ficha }}</span>
+                                <span class="text-gray-500">· turno del {{ $cita->fecha->format('d/m/Y') }} con {{ $cita->medico->apellidos }}</span>
+                            @else
+                                <span class="text-gray-500">{{ in_array($cita->estado, ['cancelada', 'inasistencia'], true) ? 'Liberada: se reasigna a otro paciente' : 'Sin asignar' }}</span>
+                            @endif
+                        </dd>
+                    </div>
                     <div class="sm:col-span-2">
                         <dt class="text-xs font-bold uppercase tracking-wider text-deep">Motivo de la consulta</dt>
                         <dd class="mt-1">{{ $cita->motivo_consulta ?: 'No indicado' }}</dd>
@@ -60,6 +71,46 @@
                     </div>
                 </dl>
             </div>
+
+            {{-- Cobro de la cita (CU49): comprobante o formulario de pago --}}
+            @if ($verPago && $cita->pago && $cita->pago->estado === 'pagado')
+                <div class="card-soft p-5 space-y-3">
+                    <h3 class="font-semibold text-gray-900">Comprobante de pago <em>{{ $cita->pago->codigo }}</em></h3>
+                    <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2 text-sm">
+                        <div><dt class="text-xs font-bold uppercase tracking-wider text-deep">Monto</dt><dd class="mt-1">Bs {{ number_format((float) $cita->pago->monto, 2) }}</dd></div>
+                        <div><dt class="text-xs font-bold uppercase tracking-wider text-deep">Método</dt><dd class="mt-1">{{ $cita->pago->metodo_nombre }}</dd></div>
+                        <div><dt class="text-xs font-bold uppercase tracking-wider text-deep">Referencia</dt><dd class="mt-1">{{ $cita->pago->referencia ?: '—' }}</dd></div>
+                        <div><dt class="text-xs font-bold uppercase tracking-wider text-deep">Fecha del pago</dt><dd class="mt-1">{{ $cita->pago->pagado_at->timezone('America/La_Paz')->format('d/m/Y H:i') }}</dd></div>
+                    </dl>
+                    <button type="button" onclick="window.print()" class="accion">Imprimir comprobante</button>
+                </div>
+            @elseif ($verPago && $cita->pago && $cita->pago->estado === 'anulado')
+                <div class="card-soft p-5 text-sm text-gray-600">Pago {{ $cita->pago->codigo }} anulado porque la cita se canceló (Bs {{ number_format((float) $cita->pago->monto, 2) }}).</div>
+            @endif
+
+            @if ($puedeCobrar)
+                <form method="POST" action="{{ route('citas.cobro', $cita) }}" class="card-soft p-5 space-y-4"
+                      x-data="{ metodo: '{{ old('metodo', 'efectivo') }}' }">
+                    @csrf
+                    <h3 class="font-semibold text-gray-900">Registrar cobro</h3>
+                    <p class="text-sm text-gray-600">Monto a cobrar: <strong>Bs {{ number_format((float) $cita->especialidad->precio, 2) }}</strong> ({{ $cita->especialidad->nombre }}).</p>
+                    <div>
+                        <label for="metodo" class="block font-semibold text-sm text-tinta">Método de pago <span class="text-red-600">*</span></label>
+                        <select id="metodo" name="metodo" x-model="metodo" required class="mt-1 campo">
+                            @foreach (\App\Models\Pago::METODOS as $valor => $nombre)
+                                <option value="{{ $valor }}">{{ $nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div x-show="metodo !== 'efectivo'" x-cloak>
+                        <label for="referencia" class="block font-semibold text-sm text-tinta">Número de operación <span class="text-red-600">*</span></label>
+                        <input id="referencia" name="referencia" type="text" maxlength="40" pattern="[A-Za-z0-9\-\s]+" value="{{ old('referencia') }}"
+                               x-bind:required="metodo !== 'efectivo'" class="mt-1 campo">
+                        <p class="mt-1 text-xs text-gray-500">Solo se registra el pago; no se guardan números de tarjeta.</p>
+                    </div>
+                    <x-boton>Registrar pago</x-boton>
+                </form>
+            @endif
 
             {{-- Acciones de la recepcionista (CU26, CU27, CU28, CU29) --}}
             @if ($puedeGestionar)

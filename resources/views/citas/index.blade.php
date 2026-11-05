@@ -52,6 +52,7 @@
                             <tr>
                                 <th class="px-4 py-3">Fecha y hora</th>
                                 <th class="px-4 py-3">Código</th>
+                                <th class="px-4 py-3">Ficha</th>
                                 <th class="px-4 py-3">Paciente</th>
                                 @unless ($soloPropias)
                                     <th class="px-4 py-3 hidden md:table-cell">Médico</th>
@@ -65,6 +66,7 @@
                                 <tr class="{{ $cita->estado === 'cancelada' ? 'opacity-60' : '' }}">
                                     <td class="px-4 py-3 whitespace-nowrap font-medium">{{ $cita->fecha->format('d/m/Y') }} · {{ $cita->inicio }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap"><a href="{{ route('citas.show', $cita) }}" class="accion">{{ $cita->codigo }}</a></td>
+                                    <td class="px-4 py-3 whitespace-nowrap">{{ $cita->ficha ? 'N.º ' . $cita->ficha : '—' }}</td>
                                     <td class="px-4 py-3">{{ $cita->paciente->apellidos }}, {{ $cita->paciente->nombres }}</td>
                                     @unless ($soloPropias)
                                         <td class="px-4 py-3 hidden md:table-cell">{{ $cita->medico->apellidos }}, {{ $cita->medico->nombres }}</td>
@@ -74,7 +76,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">No hay citas con esos filtros.</td>
+                                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">No hay citas con esos filtros.</td>
                                 </tr>
                             @endforelse
                         </tbody>

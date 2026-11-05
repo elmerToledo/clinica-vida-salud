@@ -36,6 +36,8 @@ class EspecialidadRequest extends FormRequest
                 },
             ],
             'descripcion' => ['nullable', 'string', 'max:500'],
+            // CU49: precio de la consulta en bolivianos (si no se envía, se conserva el actual o 0).
+            'precio' => ['sometimes', 'required', 'numeric', 'min:0', 'max:99999'],
         ];
     }
 }

@@ -86,6 +86,10 @@ class CitasEjemploSeeder extends Seeder
             'fecha' => $fecha,
             'hora_inicio' => $hora,
             'hora_fin' => $inicio->addMinutes($minutos)->format('H:i:s'),
+            // CU48: las citas canceladas o con inasistencia no conservan la ficha.
+            'ficha' => in_array($estado, [Cita::CANCELADA, Cita::INASISTENCIA], true)
+                ? null
+                : app(CitaService::class)->siguienteFicha($medico->id, $fecha),
             'estado' => $estado,
             'motivo_consulta' => ['Control general', 'Dolor de cabeza', 'Revisión de resultados', 'Consulta de rutina', 'Dolor de garganta'][mt_rand(0, 4)],
             'motivo_cancelacion' => $estado === Cita::CANCELADA ? 'Cancelada a pedido del paciente' : null,

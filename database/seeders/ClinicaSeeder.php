@@ -38,12 +38,18 @@ class ClinicaSeeder extends Seeder
             'Odontología' => 'Salud bucal y dental.',
             'Cardiología' => 'Enfermedades del corazón y del sistema circulatorio.',
         ];
+        // Precio de la consulta en bolivianos (CU49).
+        $precios = ['Medicina general' => 80, 'Pediatría' => 100, 'Ginecología' => 120, 'Odontología' => 90, 'Cardiología' => 150];
         $especialidades = [];
         foreach ($nombres as $nombre => $descripcion) {
             $especialidades[$nombre] = Especialidad::firstOrCreate(
                 ['nombre_normalizado' => Especialidad::normalizar($nombre)],
-                ['nombre' => $nombre, 'descripcion' => $descripcion, 'activo' => true]
+                ['nombre' => $nombre, 'descripcion' => $descripcion, 'precio' => $precios[$nombre], 'activo' => true]
             );
+            // Si la especialidad ya existía sin precio, se le asigna el precio base.
+            if ((float) $especialidades[$nombre]->precio <= 0) {
+                $especialidades[$nombre]->update(['precio' => $precios[$nombre]]);
+            }
         }
 
         // ---------- Médicos, con sus especialidades ----------

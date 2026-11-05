@@ -145,7 +145,7 @@ class CitaController extends Controller
         $estado = array_key_exists((string) $request->query('estado'), Cita::ESTADOS) ? $request->query('estado') : null;
 
         $citas = Cita::query()
-            ->with(['paciente', 'medico', 'especialidad'])
+            ->with(['paciente', 'medico', 'especialidad', 'pago'])
             ->when($medicoId !== null && $medicoId !== '', fn ($q) => $q->where('medico_id', $medicoId))
             ->when($desde, fn ($q) => $q->where('fecha', '>=', $desde))
             ->when($hasta, fn ($q) => $q->where('fecha', '<=', $hasta))
@@ -187,7 +187,7 @@ class CitaController extends Controller
         $usuario = $request->user();
         $this->autorizarVer($cita, $usuario);
 
-        $cita->load(['paciente', 'medico', 'especialidad', 'creador']);
+        $cita->load(['paciente', 'medico', 'especialidad', 'creador', 'pago']);
         $llego = $cita->fecha->toDateString() <= $this->citas->hoy();
 
         return view('citas.show', [
@@ -196,6 +196,8 @@ class CitaController extends Controller
             'puedeCancelarPropia' => $usuario->tieneRol('paciente') && $cita->vigente,
             'puedeAtender' => $usuario->tieneRol('medico') && $cita->vigente && $llego && (bool) $usuario->medico?->puede_marcar_atendida,
             'yaLlego' => $llego,
+            'puedeCobrar' => $usuario->tieneRol('recepcionista') && app(\App\Services\PagoService::class)->puedeCobrarse($cita),
+            'verPago' => ! $usuario->tieneRol('medico'),
         ]);
     }
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\HorarioAtencionController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MedicoController;
 use App\Http\Controllers\MisCitasController;
+use App\Http\Controllers\PagoController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\PerfilPacienteController;
 use App\Http\Controllers\ProfileController;
@@ -118,6 +119,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('citas/{cita}/reprogramar', [CitaController::class, 'reprogramar'])->whereNumber('cita');
         Route::patch('citas/{cita}/confirmar', [CitaController::class, 'confirmar'])->whereNumber('cita')->name('citas.confirmar');
         Route::patch('citas/{cita}/asistencia', [CitaController::class, 'asistencia'])->whereNumber('cita')->name('citas.asistencia');
+        // CU49: cobro de la cita en recepción.
+        Route::post('citas/{cita}/cobro', [PagoController::class, 'store'])->whereNumber('cita')->name('citas.cobro');
     });
     Route::patch('citas/{cita}/cancelar', [CitaController::class, 'cancelar'])
         ->middleware('rol:recepcionista,paciente')->whereNumber('cita')->name('citas.cancelar');

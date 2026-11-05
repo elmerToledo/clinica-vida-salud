@@ -23,7 +23,7 @@ class CitaService
 {
     public const ZONA = 'America/La_Paz';
 
-    public function __construct(private HorarioService $horarios)
+    public function __construct(private HorarioService $horarios, private PagoService $pagos)
     {
     }
 
@@ -120,6 +120,7 @@ class CitaService
                     'fecha' => $datos['fecha'],
                     'hora_inicio' => $bloque['inicio'],
                     'hora_fin' => $bloque['fin'],
+                    'ficha' => $this->siguienteFicha($medico->id, $datos['fecha']),
                     'estado' => Cita::PROGRAMADA,
                     'motivo_consulta' => $datos['motivo_consulta'] ?? null,
                     'creado_por' => $por?->id,
@@ -179,7 +180,13 @@ class CitaService
 
                 $antes = $cita->fecha->format('d/m/Y') . ' ' . $cita->inicio;
 
+                // CU48: la ficha se conserva si la cita sigue el mismo día; si cambia de día, toma la siguiente libre.
+                $ficha = $cita->fecha->toDateString() === $fecha
+                    ? $cita->ficha
+                    : $this->siguienteFicha($cita->medico_id, $fecha, $cita->id);
+
                 $cita->update([
+                    'ficha' => $ficha,
                     'fecha' => $fecha,
                     'hora_inicio' => $bloque['inicio'],
                     'hora_fin' => $bloque['fin'],
@@ -202,8 +209,11 @@ class CitaService
     {
         $this->exigirVigente($cita, 'cancelar');
 
-        $cita->update(['estado' => Cita::CANCELADA, 'motivo_cancelacion' => $motivo]);
-        Bitacora::registrar('cancelar', Cita::MODULO_BITACORA, $cita->id, $cita->etiquetaBitacora());
+        // CU48: la ficha queda libre para otro paciente. CU49: si estaba pagada, el pago se anula.
+        $ficha = $cita->ficha;
+        $cita->update(['estado' => Cita::CANCELADA, 'motivo_cancelacion' => $motivo, 'ficha' => null]);
+        $this->pagos->anular($cita);
+        Bitacora::registrar('cancelar', Cita::MODULO_BITACORA, $cita->id, $cita->etiquetaBitacora() . $this->notaFicha($ficha));
 
         return $cita;
     }
@@ -247,8 +257,10 @@ class CitaService
             throw ValidationException::withMessages(['estado' => 'El paciente ya llegó: no se puede registrar su inasistencia.']);
         }
 
-        $cita->update(['estado' => Cita::INASISTENCIA]);
-        Bitacora::registrar('inasistencia', Cita::MODULO_BITACORA, $cita->id, $cita->etiquetaBitacora());
+        // CU48: la ficha de quien no se presentó queda libre para reasignarla.
+        $ficha = $cita->ficha;
+        $cita->update(['estado' => Cita::INASISTENCIA, 'ficha' => null]);
+        Bitacora::registrar('inasistencia', Cita::MODULO_BITACORA, $cita->id, $cita->etiquetaBitacora() . $this->notaFicha($ficha));
 
         return $cita;
     }
@@ -284,6 +296,34 @@ class CitaService
             ->filter(fn (Cita $c) => $c->fecha->dayOfWeekIso === (int) $horario->dia_semana
                 && $c->inicio >= $inicio && $c->fin <= $fin)
             ->values();
+    }
+
+    /**
+     * CU48: menor número de ficha libre de un médico en una fecha (1, 2, 3...).
+     * Las fichas de citas canceladas o con inasistencia se liberan y se vuelven a usar.
+     */
+    public function siguienteFicha(int $medicoId, string $fecha, ?int $ignorarCitaId = null): int
+    {
+        $usadas = Cita::query()
+            ->where('medico_id', $medicoId)
+            ->where('fecha', $fecha)
+            ->whereNotNull('ficha')
+            ->when($ignorarCitaId, fn ($q) => $q->where('id', '!=', $ignorarCitaId))
+            ->pluck('ficha')
+            ->map(fn ($f) => (int) $f)
+            ->all();
+
+        $ficha = 1;
+        while (in_array($ficha, $usadas, true)) {
+            $ficha++;
+        }
+
+        return $ficha;
+    }
+
+    private function notaFicha(?int $ficha): string
+    {
+        return $ficha ? " · Ficha {$ficha} liberada" : '';
     }
 
     /** Un paciente no puede tener dos citas que se superpongan, ni siquiera con médicos distintos (RF07). */

@@ -16,7 +16,7 @@
                             <a href="{{ route('citas.show', $cita) }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 py-4 border-b border-linea last:border-b-0 hover:bg-ambar-claro/20 transition {{ $cita->estado === 'cancelada' ? 'opacity-60' : '' }}">
                                 <div>
                                     <div class="font-semibold text-gray-900">{{ $cita->fecha->format('d/m/Y') }} · {{ $cita->inicio }}</div>
-                                    <div class="text-sm text-gray-600">{{ $cita->medico->nombres }} {{ $cita->medico->apellidos }} · {{ $cita->especialidad->nombre }}</div>
+                                    <div class="text-sm text-gray-600">{{ $cita->medico->nombres }} {{ $cita->medico->apellidos }} · {{ $cita->especialidad->nombre }}@if ($cita->ficha) · Ficha N.º {{ $cita->ficha }}@endif</div>
                                 </div>
                                 <x-cita-estado :estado="$cita->estado" />
                             </a>

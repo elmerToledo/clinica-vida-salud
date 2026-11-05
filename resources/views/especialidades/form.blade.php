@@ -25,6 +25,9 @@
                 <x-campo name="nombre" label="Nombre de la especialidad" :value="$especialidad->nombre" required maxlength="100"
                          ayuda="No se admiten dos especialidades con el mismo nombre (sin importar mayúsculas ni tildes)." />
 
+                <x-campo name="precio" label="Precio de la consulta (Bs)" type="number" :value="$especialidad->precio ?? 0" required step="0.01" min="0" max="99999"
+                         ayuda="Es el monto que recepción cobra al registrar el pago de una cita (CU49)." />
+
                 <div>
                     <x-input-label for="descripcion" value="Descripción" />
                     <textarea id="descripcion" name="descripcion" rows="3" maxlength="500"

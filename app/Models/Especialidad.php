@@ -22,11 +22,11 @@ class Especialidad extends Model
     // Laravel pluralizaría "Especialidad" en inglés; se indica el nombre real de la tabla.
     protected $table = 'especialidades';
 
-    protected $fillable = ['nombre', 'descripcion', 'activo'];
+    protected $fillable = ['nombre', 'descripcion', 'precio', 'activo'];
 
     protected function casts(): array
     {
-        return ['activo' => 'boolean'];
+        return ['activo' => 'boolean', 'precio' => 'decimal:2'];
     }
 
     /** "  Pediatría  " y "pediatria" producen el mismo valor: "pediatria". */

@@ -37,6 +37,7 @@
                     <tr>
                         <th class="px-5 py-4">Especialidad</th>
                         <th class="px-5 py-4 hidden md:table-cell">Descripción</th>
+                        <th class="px-5 py-4 hidden sm:table-cell">Precio (Bs)</th>
                         <th class="px-5 py-4 hidden sm:table-cell">Médicos activos</th>
                         <th class="px-5 py-4">Estado</th>
                         @if (auth()->user()->tieneRol('administrador'))
@@ -49,6 +50,7 @@
                         <tr class="{{ $especialidad->activo ? '' : 'opacity-60' }}">
                             <td class="px-5 py-4 font-medium">{{ $especialidad->nombre }}</td>
                             <td class="px-5 py-4 hidden md:table-cell">{{ $especialidad->descripcion }}</td>
+                            <td class="px-5 py-4 hidden sm:table-cell">{{ number_format((float) $especialidad->precio, 2) }}</td>
                             <td class="px-5 py-4 hidden sm:table-cell">{{ $especialidad->medicos_activos_count }}</td>
                             <td class="px-5 py-4"><x-estado-badge :activo="$especialidad->activo" /></td>
                             @if (auth()->user()->tieneRol('administrador'))
