@@ -83,6 +83,7 @@ class Menu
             $enlace('Médicos', 'medicos.index', 'stethoscope', 'medicos.*'),
             $enlace('Especialidades', 'especialidades.index', 'heart', 'especialidades.*'),
             $enlace('Horarios', 'horarios.index', 'clock', 'horarios.*'),
+            ...($usuario->tieneRol('administrador') ? [$enlace('Feriados y bloqueos', 'bloqueos.index', 'calendar-check', 'bloqueos.*')] : []),
         ]);
 
         $reportes = fn () => $grupo('Reportes', 'bar-chart', array_merge(
@@ -94,6 +95,7 @@ class Menu
             'administrador' => [
                 $inicio,
                 $enlace('Citas', 'citas.index', 'calendar-check', 'citas.*'),
+                $enlace('Recordatorios', 'recordatorios.index', 'bell', 'recordatorios.*'),
                 $pacientes,
                 $medicosYEspecialidades,
                 $reportes(),
@@ -108,6 +110,7 @@ class Menu
                 $grupo('Citas médicas', 'calendar-check', [
                     $enlace('Agenda de citas', 'citas.index', 'calendar-check', 'citas.*', ['citas.paciente', 'citas.disponibilidad', 'citas.create']),
                     $enlace('Nueva cita', 'citas.paciente', 'calendar-plus', 'citas.*', ['citas.index', 'citas.show', 'citas.reprogramar']),
+                    $enlace('Recordatorios', 'recordatorios.index', 'bell', 'recordatorios.*'),
                 ]),
                 $pacientes,
                 $medicosYEspecialidades,
@@ -118,6 +121,7 @@ class Menu
                 $grupo('Mi consulta', 'stethoscope', [
                     $enlace('Mis horarios', 'horarios.index', 'clock', 'horarios.*'),
                     $enlace('Mi agenda', 'citas.index', 'calendar-check', 'citas.*'),
+                    $enlace('Mis pacientes', 'historial.pacientes', 'users', 'historial.*'),
                 ]),
             ],
             'paciente' => [
@@ -126,6 +130,7 @@ class Menu
                     $enlace('Reservar cita', 'citas.disponibilidad', 'calendar-plus', 'citas.*', ['mis-citas.*']),
                     $enlace('Mis citas', 'mis-citas.index', 'file-text', 'mis-citas.*'),
                 ]),
+                $enlace('Mi historial médico', 'historial.mio', 'heart-pulse', 'historial.*'),
                 $enlace('Médicos y horarios', 'directorio.index', 'stethoscope', 'directorio.*'),
                 $enlace('Mis datos', 'perfil.edit', 'user-check', 'perfil.*'),
             ],

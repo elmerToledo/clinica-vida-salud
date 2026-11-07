@@ -5,7 +5,10 @@
                 <h2>Citas por médico</h2>
                 <p>Cuántas citas tiene cada médico en el período, según su estado.</p>
             </div>
-            <x-boton class="no-imprimir" tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            <div class="no-imprimir flex flex-wrap gap-2">
+                <x-boton tipo="secundario" :href="route('reportes.exportar', ['reporte' => 'medico'] + request()->query())">Exportar CSV</x-boton>
+                <x-boton tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            </div>
         </div>
     </x-slot>
 

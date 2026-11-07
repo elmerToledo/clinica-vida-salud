@@ -6,7 +6,10 @@ use App\Services\CitaService;
 use App\Services\ReporteService;
 use App\Support\Menu;
 use Carbon\CarbonImmutable;
+use App\Models\Bitacora;
+use App\Models\Cita;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\View\View;
 
 /**
@@ -97,6 +100,76 @@ class ReporteController extends Controller
         [$desde, $hasta] = $this->rango($request, ...$this->mesActual());
 
         return view('reportes.periodo', ['desde' => $desde, 'hasta' => $hasta, 'datos' => $this->reportes->atendidasCanceladasInasistencias($desde, $hasta)]);
+    }
+
+    /**
+     * CU45: descarga el reporte en CSV (se abre en Excel). Para PDF se usa el botón Imprimir del navegador.
+     * Respeta los permisos de cada reporte y los mismos filtros de fecha de la pantalla.
+     */
+    public function exportar(Request $request, string $reporte): StreamedResponse
+    {
+        $permitidos = collect(Menu::reportes($request->user()))->pluck('ruta')->map(fn ($r) => str_replace('reportes.', '', $r));
+        abort_unless($permitidos->contains($reporte), 404);
+
+        $datos = $request->validate($this->reglasFechas($request), $this->mensajes());
+        [$d0, $h0] = $reporte === 'fecha'
+            ? [$this->citas->hoy(), CarbonImmutable::createFromFormat('Y-m-d', $this->citas->hoy())->addDays(6)->toDateString()]
+            : $this->mesActual();
+        $desde = $datos['desde'] ?? ($reporte === 'pacientes' ? null : $d0);
+        $hasta = $datos['hasta'] ?? ($reporte === 'pacientes' ? null : $h0);
+
+        $estadosCols = array_values(Cita::ESTADOS);
+        $estadosKeys = array_keys(Cita::ESTADOS);
+        $filas = [];
+
+        switch ($reporte) {
+            case 'fecha':
+                $cab = ['Fecha', 'Hora', 'Ficha', 'Paciente', 'Médico', 'Especialidad', 'Estado'];
+                foreach ($this->reportes->citasPorFecha($desde, $hasta) as $c) {
+                    $filas[] = [$c->fecha->format('d/m/Y'), $c->inicio, $c->ficha, $c->paciente->nombre_completo, $c->medico->apellidos . ', ' . $c->medico->nombres, $c->especialidad->nombre, $c->estado_nombre];
+                }
+                break;
+            case 'medico':
+            case 'especialidad':
+                $cab = array_merge([$reporte === 'medico' ? 'Médico' : 'Especialidad', 'Total'], $estadosCols);
+                $origen = $reporte === 'medico' ? $this->reportes->citasPorMedico($desde, $hasta) : $this->reportes->citasPorEspecialidad($desde, $hasta);
+                foreach ($origen as $f) {
+                    $nombre = $reporte === 'medico' ? $f->apellidos . ', ' . $f->nombres : $f->nombre;
+                    $filas[] = array_merge([$nombre, $f->total], array_map(fn ($e) => $f->{$e}, $estadosKeys));
+                }
+                break;
+            case 'estado':
+                $cab = ['Estado', 'Total de citas'];
+                foreach ($this->reportes->citasPorEstado($desde, $hasta) as $f) {
+                    $filas[] = [$f['nombre'], $f['total']];
+                }
+                break;
+            case 'pacientes':
+                $estado = in_array($request->query('estado'), ['activos', 'inactivos'], true) ? $request->query('estado') : 'todos';
+                $cab = ['Código', 'CI', 'Paciente', 'Teléfono', 'Alta', 'Estado'];
+                foreach ($this->reportes->pacientes($desde, $hasta, $estado)->orderByDesc('created_at')->orderBy('apellidos')->orderBy('nombres')->get() as $p) {
+                    $filas[] = [$p->codigo, $p->ci, $p->nombre_completo, $p->telefono, $p->created_at->format('d/m/Y'), $p->activo ? 'Activo' : 'Inactivo'];
+                }
+                break;
+            default: // periodo
+                $cab = ['Resultado', 'Total'];
+                $r = $this->reportes->atendidasCanceladasInasistencias($desde, $hasta);
+                $filas = [['Atendidas', $r['atendidas']], ['Canceladas', $r['canceladas']], ['Inasistencias', $r['inasistencias']], ['Total', $r['total']]];
+        }
+
+        Bitacora::registrar('exportar', 'reportes', null, "Reporte {$reporte}" . ($desde ? " del {$desde} al {$hasta}" : '') . ' (CSV)');
+
+        $nombre = 'reporte-' . $reporte . '-' . $this->citas->hoy() . '.csv';
+
+        return response()->streamDownload(function () use ($cab, $filas) {
+            $f = fopen('php://output', 'w');
+            fwrite($f, "\xEF\xBB\xBF"); // BOM para que Excel lea bien las tildes
+            fputcsv($f, $cab, ';');
+            foreach ($filas as $fila) {
+                fputcsv($f, $fila, ';');
+            }
+            fclose($f);
+        }, $nombre, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     /** Primer y último día del mes actual (período por defecto). */

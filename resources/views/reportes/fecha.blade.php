@@ -5,7 +5,10 @@
                 <h2>Citas por fecha</h2>
                 <p>Citas programadas y confirmadas entre dos fechas.</p>
             </div>
-            <x-boton class="no-imprimir" tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            <div class="no-imprimir flex flex-wrap gap-2">
+                <x-boton tipo="secundario" :href="route('reportes.exportar', ['reporte' => 'fecha'] + request()->query())">Exportar CSV</x-boton>
+                <x-boton tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            </div>
         </div>
     </x-slot>
 

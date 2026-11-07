@@ -5,7 +5,10 @@
                 <h2>Pacientes registrados</h2>
                 <p>Altas de pacientes por fecha de registro. Sin fechas, se muestran todos.</p>
             </div>
-            <x-boton class="no-imprimir" tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            <div class="no-imprimir flex flex-wrap gap-2">
+                <x-boton tipo="secundario" :href="route('reportes.exportar', ['reporte' => 'pacientes'] + request()->query())">Exportar CSV</x-boton>
+                <x-boton tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            </div>
         </div>
     </x-slot>
 

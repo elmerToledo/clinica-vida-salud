@@ -5,7 +5,10 @@
                 <h2>Citas por estado</h2>
                 <p>Cuántas citas hay en cada estado dentro del período.</p>
             </div>
-            <x-boton class="no-imprimir" tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            <div class="no-imprimir flex flex-wrap gap-2">
+                <x-boton tipo="secundario" :href="route('reportes.exportar', ['reporte' => 'estado'] + request()->query())">Exportar CSV</x-boton>
+                <x-boton tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            </div>
         </div>
     </x-slot>
 

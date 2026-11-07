@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Bitacora;
+use App\Models\Bloqueo;
 use App\Models\Cita;
 use App\Models\HorarioAtencion;
 use App\Models\Medico;
@@ -50,6 +51,11 @@ class CitaService
         $bloques = collect();
 
         if (! $medico->activo) {
+            return $bloques;
+        }
+
+        // CU46: un feriado o bloqueo activo cierra la agenda de ese día.
+        if (Bloqueo::vigenteEn($medico->id, $fecha)) {
             return $bloques;
         }
 
@@ -145,6 +151,11 @@ class CitaService
     {
         if (! $medico->activo) {
             throw ValidationException::withMessages(['medico_id' => 'El médico está inactivo y no recibe citas nuevas.']);
+        }
+
+        // CU46: se informa el motivo del bloqueo en lugar de un error genérico.
+        if ($bloqueo = Bloqueo::vigenteEn($medico->id, $fecha)) {
+            throw ValidationException::withMessages([$campo => 'La agenda está bloqueada ese día: ' . $bloqueo->motivo . '. Elija otra fecha.']);
         }
 
         $bloque = $this->bloques($medico, $fecha, $ignorarCitaId)->firstWhere('inicio', $horaInicio);

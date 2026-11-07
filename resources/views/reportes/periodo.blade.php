@@ -5,7 +5,10 @@
                 <h2>Atendidas, canceladas e inasistencias</h2>
                 <p>Resultado de las citas del período.</p>
             </div>
-            <x-boton class="no-imprimir" tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            <div class="no-imprimir flex flex-wrap gap-2">
+                <x-boton tipo="secundario" :href="route('reportes.exportar', ['reporte' => 'periodo'] + request()->query())">Exportar CSV</x-boton>
+                <x-boton tipo="secundario" :href="route('reportes.index')">Todos los reportes</x-boton>
+            </div>
         </div>
     </x-slot>
 

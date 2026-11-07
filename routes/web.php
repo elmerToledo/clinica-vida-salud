@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\BloqueoController;
+use App\Http\Controllers\HistorialMedicoController;
+use App\Http\Controllers\NotificacionController;
+use App\Http\Controllers\RecordatorioController;
 use App\Http\Controllers\CitaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EspecialidadController;
@@ -66,6 +70,28 @@ Route::middleware('auth')->group(function () {
         Route::put('mi-perfil', [PerfilPacienteController::class, 'update'])->name('perfil.update');
     });
 
+    // ---- Historial médico (CU44): el paciente ve el suyo; el médico, el de los pacientes que atendió ----
+    Route::get('historial-medico', [HistorialMedicoController::class, 'mio'])->middleware('rol:paciente')->name('historial.mio');
+    Route::middleware('rol:medico')->group(function () {
+        Route::get('mis-pacientes', [HistorialMedicoController::class, 'pacientes'])->name('historial.pacientes');
+        Route::get('mis-pacientes/{paciente}', [HistorialMedicoController::class, 'paciente'])->whereNumber('paciente')->name('historial.paciente');
+    });
+
+    // ---- Recordatorios (CU43): recepción y administrador; la campanita la ve cada usuario ----
+    Route::middleware('rol:administrador,recepcionista')->group(function () {
+        Route::get('recordatorios', [RecordatorioController::class, 'index'])->name('recordatorios.index');
+        Route::post('recordatorios', [RecordatorioController::class, 'enviar'])->name('recordatorios.enviar');
+    });
+    Route::get('notificaciones', [NotificacionController::class, 'index'])->name('notificaciones.index');
+    Route::post('notificaciones/leer-todas', [NotificacionController::class, 'leerTodas'])->name('notificaciones.leer-todas');
+    Route::patch('notificaciones/{id}/leer', [NotificacionController::class, 'leer'])->name('notificaciones.leer');
+
+    // ---- Feriados y bloqueos (CU46): solo administrador ----
+    Route::middleware('rol:administrador')->group(function () {
+        Route::resource('bloqueos', BloqueoController::class)->only(['index', 'create', 'store']);
+        Route::patch('bloqueos/{bloqueo}/estado', [BloqueoController::class, 'cambiarEstado'])->name('bloqueos.estado');
+    });
+
     // ---- Médicos (CU12-CU15): Recepcionista solo consulta (CU13) ----
     Route::resource('medicos', MedicoController::class)
         ->only(['index'])
@@ -129,6 +155,10 @@ Route::middleware('auth')->group(function () {
 
     // ---- Reportes (CU37-CU42): solo consulta. Recepción: CU37, CU38 y CU40; administrador: los seis ----
     Route::prefix('reportes')->name('reportes.')->group(function () {
+        // CU45: exportar a CSV; el controlador revisa qué reportes puede ver cada rol.
+        Route::get('{reporte}/exportar', [ReporteController::class, 'exportar'])
+            ->middleware('rol:administrador,recepcionista')
+            ->where('reporte', 'fecha|medico|estado|especialidad|pacientes|periodo')->name('exportar');
         Route::middleware('rol:administrador,recepcionista')->group(function () {
             Route::get('/', [ReporteController::class, 'index'])->name('index');
             Route::get('citas-por-fecha', [ReporteController::class, 'porFecha'])->name('fecha');

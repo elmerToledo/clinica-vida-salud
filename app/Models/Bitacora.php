@@ -36,6 +36,8 @@ class Bitacora extends Model
         'atender' => 'Atención',
         'cobrar' => 'Cobro',
         'anular' => 'Anulación',
+        'recordatorio' => 'Recordatorio',
+        'exportar' => 'Exportación',
     ];
 
     public const MODULOS = [
@@ -47,6 +49,8 @@ class Bitacora extends Model
         'horarios' => 'Horarios',
         'citas' => 'Citas',
         'pagos' => 'Pagos',
+        'bloqueos' => 'Bloqueos',
+        'reportes' => 'Reportes',
     ];
 
     protected function casts(): array

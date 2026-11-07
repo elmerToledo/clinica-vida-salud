@@ -30,6 +30,17 @@
             </a>
         @endif
 
+        @if ($u->tieneRol('paciente'))
+            @php($sinLeer = $u->unreadNotifications()->count())
+            <a href="{{ route('notificaciones.index') }}" aria-label="Avisos{{ $sinLeer ? ': ' . $sinLeer . ' sin leer' : '' }}"
+               class="relative flex h-10 w-10 items-center justify-center rounded-xl text-tinta hover:bg-tenue">
+                <x-icono nombre="bell" class="h-5 w-5" />
+                @if ($sinLeer > 0)
+                    <span class="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[rgb(var(--c-peligro))] px-1 text-[10px] font-bold text-white">{{ $sinLeer > 9 ? '9+' : $sinLeer }}</span>
+                @endif
+            </a>
+        @endif
+
         <!-- Menú del usuario -->
         <div class="relative" x-data="{ usuario: false }" @click.outside="usuario = false" @keydown.escape="usuario = false">
             <button type="button" @click="usuario = !usuario" :aria-expanded="usuario.toString()" aria-haspopup="menu" aria-label="Menú del usuario"

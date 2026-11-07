@@ -46,6 +46,7 @@ class Cita extends Model
         'motivo_consulta',
         'motivo_cancelacion',
         'llegada_at',
+        'recordatorio_enviado_at',
         'creado_por',
     ];
 
@@ -55,6 +56,7 @@ class Cita extends Model
             // Con formato propio se guarda "2026-10-26", sin hora, igual en PostgreSQL y en SQLite.
             'fecha' => 'date:Y-m-d',
             'llegada_at' => 'datetime',
+            'recordatorio_enviado_at' => 'datetime',
         ];
     }
 
