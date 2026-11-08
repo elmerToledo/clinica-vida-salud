@@ -93,11 +93,12 @@
                       x-data="{ metodo: '{{ old('metodo', 'efectivo') }}' }">
                     @csrf
                     <h3 class="font-semibold text-gray-900">Registrar cobro</h3>
+                    <p class="text-xs text-gray-500">Efectivo y tarjeta en ventanilla. El pago con PayPal lo realiza el paciente en línea.</p>
                     <p class="text-sm text-gray-600">Monto a cobrar: <strong>Bs {{ number_format((float) $cita->especialidad->precio, 2) }}</strong> ({{ $cita->especialidad->nombre }}).</p>
                     <div>
                         <label for="metodo" class="block font-semibold text-sm text-tinta">Método de pago <span class="text-red-600">*</span></label>
                         <select id="metodo" name="metodo" x-model="metodo" required class="mt-1 campo">
-                            @foreach (\App\Models\Pago::METODOS as $valor => $nombre)
+                            @foreach (\App\Models\Pago::METODOS_RECEPCION as $valor => $nombre)
                                 <option value="{{ $valor }}">{{ $nombre }}</option>
                             @endforeach
                         </select>
@@ -110,6 +111,50 @@
                     </div>
                     <x-boton>Registrar pago</x-boton>
                 </form>
+            @endif
+
+            {{-- El paciente paga su cita en línea con PayPal (simulado) --}}
+            @if ($puedePagar)
+                <div class="card-soft p-5 space-y-3">
+                    <h3 class="font-semibold text-gray-900">Pagar mi cita</h3>
+                    <p class="text-sm text-gray-600">Monto: <strong>Bs {{ number_format((float) $cita->especialidad->precio, 2) }}</strong> ({{ $cita->especialidad->nombre }}). Puede pagar ahora en línea con PayPal o en recepción el día de su cita.</p>
+                    <x-boton :href="route('citas.pagar', $cita)">Pagar con PayPal</x-boton>
+                </div>
+            @endif
+
+            {{-- Receta médica: el médico la escribe y publica; el paciente ve la publicada --}}
+            @if ($puedeRecetar || $verReceta)
+                <div class="card-soft p-5 space-y-3">
+                    <h3 class="font-semibold text-gray-900">Receta médica @if ($cita->receta)<em>{{ $cita->receta->codigo }}</em>@endif</h3>
+                    @if ($cita->receta)
+                        <p class="text-sm text-gray-600">
+                            @if ($cita->receta->publicada)
+                                Publicada el {{ $cita->receta->publicada_at->timezone('America/La_Paz')->format('d/m/Y H:i') }}.
+                            @else
+                                Borrador: el paciente aún no la ve.
+                            @endif
+                        </p>
+                        @if ($usuario->tieneRol('paciente'))
+                            <dl class="space-y-3 text-sm">
+                                <div><dt class="text-xs font-bold uppercase tracking-wider text-deep">Diagnóstico</dt><dd class="mt-1 whitespace-pre-line">{{ $cita->receta->diagnostico }}</dd></div>
+                                <div><dt class="text-xs font-bold uppercase tracking-wider text-deep">Medicamentos</dt><dd class="mt-1 whitespace-pre-line">{{ $cita->receta->medicamentos }}</dd></div>
+                                @if ($cita->receta->indicaciones)
+                                    <div><dt class="text-xs font-bold uppercase tracking-wider text-deep">Indicaciones</dt><dd class="mt-1 whitespace-pre-line">{{ $cita->receta->indicaciones }}</dd></div>
+                                @endif
+                            </dl>
+                        @endif
+                    @elseif ($puedeRecetar)
+                        <p class="text-sm text-gray-600">Aún no hay receta para esta cita.</p>
+                    @endif
+                    <div class="flex flex-wrap gap-3">
+                        @if ($puedeRecetar)
+                            <x-boton :href="route('recetas.editar', $cita)">{{ $cita->receta ? ($cita->receta->publicada ? 'Ver receta' : 'Editar receta') : 'Escribir receta' }}</x-boton>
+                        @endif
+                        @if ($verReceta)
+                            <x-boton tipo="secundario" :href="route('recetas.imprimir', $cita)" target="_blank" rel="noopener">Imprimir receta</x-boton>
+                        @endif
+                    </div>
+                </div>
             @endif
 
             {{-- Acciones de la recepcionista (CU26, CU27, CU28, CU29) --}}

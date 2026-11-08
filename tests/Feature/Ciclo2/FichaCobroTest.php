@@ -137,7 +137,7 @@ it('la recepcionista registra el cobro en efectivo con el precio de la especiali
     expect(Bitacora::where('modulo', 'pagos')->where('accion', 'cobrar')->where('registro_id', $pago->id)->exists())->toBeTrue();
 });
 
-it('los pagos con tarjeta o PayPal exigen el número de operación (CU49)', function (string $metodo) {
+it('los pagos con tarjeta exigen el número de operación (CU49)', function (string $metodo) {
     $cita = crearCita($this);
 
     $this->actingAs($this->recepcion)
@@ -149,14 +149,14 @@ it('los pagos con tarjeta o PayPal exigen el número de operación (CU49)', func
         ->post("/citas/{$cita->id}/cobro", ['metodo' => $metodo, 'referencia' => 'OP-2026-0001'])
         ->assertSessionHasNoErrors();
     expect($cita->fresh()->pago->referencia)->toBe('OP-2026-0001');
-})->with(['tarjeta_credito', 'tarjeta_debito', 'paypal']);
+})->with(['tarjeta_credito', 'tarjeta_debito']);
 
 it('rechaza un método de pago inválido o una referencia con símbolos (CU49)', function () {
     $cita = crearCita($this);
 
     $this->actingAs($this->recepcion)->post("/citas/{$cita->id}/cobro", ['metodo' => 'yape'])->assertSessionHasErrors('metodo');
     $this->actingAs($this->recepcion)->post("/citas/{$cita->id}/cobro", [])->assertSessionHasErrors('metodo');
-    $this->actingAs($this->recepcion)->post("/citas/{$cita->id}/cobro", ['metodo' => 'paypal', 'referencia' => 'AB<script>'])->assertSessionHasErrors('referencia');
+    $this->actingAs($this->recepcion)->post("/citas/{$cita->id}/cobro", ['metodo' => 'tarjeta_credito', 'referencia' => 'AB<script>'])->assertSessionHasErrors('referencia');
     expect(Pago::count())->toBe(0);
 });
 
@@ -210,7 +210,7 @@ it('solo la recepcionista registra cobros (CU49, RN12)', function (string $rol) 
 
 it('el comprobante lo ven recepción y el paciente dueño, no el médico (CU49)', function () {
     $cita = crearCita($this);
-    $this->actingAs($this->recepcion)->post("/citas/{$cita->id}/cobro", ['metodo' => 'paypal', 'referencia' => 'PP-77']);
+    $this->actingAs($this->recepcion)->post("/citas/{$cita->id}/cobro", ['metodo' => 'tarjeta_credito', 'referencia' => 'PP-77']);
 
     $this->actingAs($this->recepcion)->get("/citas/{$cita->id}")->assertOk()->assertSee('Comprobante de pago')->assertSee('PP-77');
 

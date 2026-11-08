@@ -7,10 +7,11 @@ use App\Models\Cita;
 use App\Models\Pago;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Cobro de las citas (CU49). Solo registra el pago: no se conecta a una pasarela real.
+ * Cobro de las citas (CU49). Registra el pago; PayPal es una simulación sin pasarela real.
  */
 class PagoService
 {
@@ -66,6 +67,17 @@ class PagoService
 
             return $pago;
         });
+    }
+
+    /**
+     * El paciente paga su cita con PayPal. Es una simulación: no se conecta a PayPal ni mueve dinero;
+     * genera el número de operación como lo haría la pasarela y registra el pago.
+     */
+    public function pagarEnLinea(Cita $cita, User $paciente): Pago
+    {
+        $referencia = 'PP-' . strtoupper(Str::random(10));
+
+        return $this->registrar($cita, ['metodo' => Pago::PAYPAL, 'referencia' => $referencia], $paciente);
     }
 
     /** Anula el pago de una cita que se cancela (el reembolso se hace en recepción). */

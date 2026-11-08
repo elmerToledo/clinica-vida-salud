@@ -53,7 +53,7 @@ class HistorialMedicoController extends Controller
     private function atenciones(int $pacienteId)
     {
         return Cita::query()
-            ->with(['medico', 'especialidad'])
+            ->with(['medico', 'especialidad', 'receta'])
             ->where('paciente_id', $pacienteId)
             ->where('estado', Cita::ATENDIDA)
             ->orderByDesc('fecha')->orderByDesc('hora_inicio')

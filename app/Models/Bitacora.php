@@ -35,6 +35,7 @@ class Bitacora extends Model
         'inasistencia' => 'Inasistencia',
         'atender' => 'Atención',
         'cobrar' => 'Cobro',
+        'publicar' => 'Publicación',
         'anular' => 'Anulación',
         'recordatorio' => 'Recordatorio',
         'exportar' => 'Exportación',
@@ -49,6 +50,7 @@ class Bitacora extends Model
         'horarios' => 'Horarios',
         'citas' => 'Citas',
         'pagos' => 'Pagos',
+        'recetas' => 'Recetas',
         'bloqueos' => 'Bloqueos',
         'reportes' => 'Reportes',
     ];

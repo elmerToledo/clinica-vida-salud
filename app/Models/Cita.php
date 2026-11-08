@@ -93,6 +93,12 @@ class Cita extends Model
         return $this->hasOne(Pago::class);
     }
 
+    /** Receta médica de la cita; una cita tiene como máximo una. */
+    public function receta(): HasOne
+    {
+        return $this->hasOne(Receta::class);
+    }
+
     public function creador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'creado_por');

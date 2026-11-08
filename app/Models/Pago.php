@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Pago de una cita (CU49). Se registra en recepción; no se elimina: se anula si la cita se cancela.
+ * Pago de una cita (CU49). Lo registra recepción (efectivo o tarjeta) o lo paga el paciente en línea con PayPal; no se elimina: se anula si la cita se cancela.
  */
 class Pago extends Model
 {
@@ -26,6 +26,13 @@ class Pago extends Model
         self::TARJETA_CREDITO => 'Tarjeta de crédito',
         self::TARJETA_DEBITO => 'Tarjeta de débito',
         self::PAYPAL => 'PayPal',
+    ];
+
+    /** Métodos que la recepcionista registra en ventanilla; PayPal lo paga el propio paciente en línea. */
+    public const METODOS_RECEPCION = [
+        self::EFECTIVO => 'Efectivo',
+        self::TARJETA_CREDITO => 'Tarjeta de crédito',
+        self::TARJETA_DEBITO => 'Tarjeta de débito',
     ];
 
     protected $table = 'pagos';

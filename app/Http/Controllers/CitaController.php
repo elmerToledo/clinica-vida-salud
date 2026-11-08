@@ -187,7 +187,7 @@ class CitaController extends Controller
         $usuario = $request->user();
         $this->autorizarVer($cita, $usuario);
 
-        $cita->load(['paciente', 'medico', 'especialidad', 'creador', 'pago']);
+        $cita->load(['paciente', 'medico', 'especialidad', 'creador', 'pago', 'receta']);
         $llego = $cita->fecha->toDateString() <= $this->citas->hoy();
 
         return view('citas.show', [
@@ -198,6 +198,9 @@ class CitaController extends Controller
             'yaLlego' => $llego,
             'puedeCobrar' => $usuario->tieneRol('recepcionista') && app(\App\Services\PagoService::class)->puedeCobrarse($cita),
             'verPago' => ! $usuario->tieneRol('medico'),
+            'puedePagar' => $usuario->tieneRol('paciente') && app(\App\Services\PagoService::class)->puedeCobrarse($cita) && (float) $cita->especialidad->precio > 0,
+            'puedeRecetar' => app(\App\Services\RecetaService::class)->puedeRecetar($cita, $usuario),
+            'verReceta' => $cita->receta && ($usuario->tieneRol('medico') || ($usuario->tieneRol('paciente') && $cita->receta->publicada)),
         ]);
     }
 

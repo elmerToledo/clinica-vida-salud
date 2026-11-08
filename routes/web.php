@@ -13,6 +13,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MedicoController;
 use App\Http\Controllers\MisCitasController;
 use App\Http\Controllers\PagoController;
+use App\Http\Controllers\RecetaController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\PerfilPacienteController;
 use App\Http\Controllers\ProfileController;
@@ -152,6 +153,21 @@ Route::middleware('auth')->group(function () {
         ->middleware('rol:recepcionista,paciente')->whereNumber('cita')->name('citas.cancelar');
     Route::patch('citas/{cita}/atender', [CitaController::class, 'atender'])
         ->middleware('rol:medico')->whereNumber('cita')->name('citas.atender');
+
+    // CU49: el paciente paga su cita en línea con PayPal (simulado).
+    Route::middleware('rol:paciente')->group(function () {
+        Route::get('citas/{cita}/pagar', [PagoController::class, 'pagar'])->whereNumber('cita')->name('citas.pagar');
+        Route::post('citas/{cita}/pagar', [PagoController::class, 'pagarEnLinea'])->whereNumber('cita')->name('citas.pagar.confirmar');
+    });
+
+    // Receta médica: el médico la escribe, publica e imprime; el paciente ve e imprime la publicada.
+    Route::middleware('rol:medico')->group(function () {
+        Route::get('citas/{cita}/receta', [RecetaController::class, 'editar'])->whereNumber('cita')->name('recetas.editar');
+        Route::put('citas/{cita}/receta', [RecetaController::class, 'guardar'])->whereNumber('cita')->name('recetas.guardar');
+        Route::patch('citas/{cita}/receta/publicar', [RecetaController::class, 'publicar'])->whereNumber('cita')->name('recetas.publicar');
+    });
+    Route::get('citas/{cita}/receta/imprimir', [RecetaController::class, 'imprimir'])
+        ->middleware('rol:medico,paciente')->whereNumber('cita')->name('recetas.imprimir');
 
     // ---- Reportes (CU37-CU42): solo consulta. Recepción: CU37, CU38 y CU40; administrador: los seis ----
     Route::prefix('reportes')->name('reportes.')->group(function () {
