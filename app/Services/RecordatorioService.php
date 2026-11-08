@@ -4,10 +4,12 @@ namespace App\Services;
 
 use App\Models\Bitacora;
 use App\Models\Cita;
+use App\Models\CorreoEnviado;
 use App\Notifications\RecordatorioCita;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
+use Throwable;
 
 /**
  * Recordatorios de citas (CU43): avisa al paciente el día antes de su cita.
@@ -56,10 +58,23 @@ class RecordatorioService
             return false;
         }
 
-        if ($medio === 'portal') {
-            $cita->paciente->user->notify(new RecordatorioCita($cita));
-        } else {
-            Notification::route('mail', $cita->paciente->email)->notify(new RecordatorioCita($cita));
+        try {
+            if ($medio === 'portal') {
+                $cita->paciente->user->notify(new RecordatorioCita($cita));
+            } else {
+                Notification::route('mail', $cita->paciente->email)->notify(new RecordatorioCita($cita));
+            }
+        } catch (Throwable $e) {
+            // La campanita (si hubo) ya quedó guardada; el correo falló: se deja constancia y se avisa.
+            report($e);
+            CorreoEnviado::registrarFallo(
+                $cita->paciente->user?->email ?? (string) $cita->paciente->email,
+                'Recordatorio de su cita en Clínica Santa Aurora',
+                'Recordatorio de cita del ' . $cita->fecha->format('d/m/Y') . ' a las ' . substr((string) $cita->hora_inicio, 0, 5) . '.',
+                $e,
+            );
+
+            throw $e;
         }
 
         $cita->forceFill(['recordatorio_enviado_at' => now()])->saveQuietly();
@@ -71,19 +86,21 @@ class RecordatorioService
     /**
      * Envía los recordatorios pendientes de las citas de mañana (una sola vez por cita).
      *
-     * @return array{enviados: int, sin_medio: int, ya_enviados: int}
+     * @return array{enviados: int, sin_medio: int, ya_enviados: int, fallidos: int}
      */
     public function enviarPendientes(): array
     {
-        $r = ['enviados' => 0, 'sin_medio' => 0, 'ya_enviados' => 0];
+        $r = ['enviados' => 0, 'sin_medio' => 0, 'ya_enviados' => 0, 'fallidos' => 0];
 
         foreach ($this->citasDeManana() as $cita) {
             if ($cita->recordatorio_enviado_at) {
                 $r['ya_enviados']++;
-            } elseif ($this->enviar($cita)) {
-                $r['enviados']++;
             } else {
-                $r['sin_medio']++;
+                try {
+                    $this->enviar($cita) ? $r['enviados']++ : $r['sin_medio']++;
+                } catch (Throwable) {
+                    $r['fallidos']++;
+                }
             }
         }
 

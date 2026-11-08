@@ -14,7 +14,7 @@ class EnviarRecordatorios extends Command
     public function handle(RecordatorioService $recordatorios): int
     {
         $r = $recordatorios->enviarPendientes();
-        $this->info("Recordatorios enviados: {$r['enviados']}; sin medio de contacto: {$r['sin_medio']}; ya enviados antes: {$r['ya_enviados']}.");
+        $this->info("Recordatorios enviados: {$r['enviados']}; sin medio de contacto: {$r['sin_medio']}; ya enviados antes: {$r['ya_enviados']}; fallidos: {$r['fallidos']}.");
 
         return self::SUCCESS;
     }

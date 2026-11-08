@@ -173,4 +173,9 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// Constancia de correos enviados: página aparte, sin enlace en el menú. Solo administrador, por URL directa.
+Route::get('constancia-correos', [\App\Http\Controllers\ConstanciaCorreosController::class, 'index'])
+    ->middleware(['auth', 'rol:administrador'])
+    ->name('constancia.correos');
+
 require __DIR__.'/auth.php';

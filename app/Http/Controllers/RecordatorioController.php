@@ -33,10 +33,21 @@ class RecordatorioController extends Controller
         if ($r['sin_medio'] > 0) {
             $mensaje .= " {$r['sin_medio']} paciente(s) no tienen cuenta ni correo registrado.";
         }
-        if ($r['enviados'] === 0 && $r['sin_medio'] === 0) {
+        if ($r['enviados'] === 0 && $r['sin_medio'] === 0 && $r['fallidos'] === 0) {
             $mensaje = $r['ya_enviados'] > 0 ? 'Todos los recordatorios de mañana ya fueron enviados.' : 'No hay citas para mañana.';
         }
 
-        return back()->with('exito', $mensaje);
+        $respuesta = back();
+
+        if ($r['fallidos'] > 0) {
+            $respuesta->with('error', "No se pudo enviar el correo de {$r['fallidos']} recordatorio(s). Revise la configuración de correo e inténtelo de nuevo.");
+            if ($r['enviados'] > 0 || $r['sin_medio'] > 0) {
+                $respuesta->with('exito', $mensaje);
+            }
+
+            return $respuesta;
+        }
+
+        return $respuesta->with('exito', $mensaje);
     }
 }

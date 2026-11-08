@@ -6,6 +6,8 @@ use App\Models\Bitacora;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Mail\Events\MessageSent;
+use App\Models\CorreoEnviado;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -34,6 +36,8 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Logout::class, fn (Logout $e) => $e->user
             ? Bitacora::registrar('salida', 'sesion', $e->user->getAuthIdentifier(), 'Cierre de sesión', $e->user)
             : null);
+        // Constancia de correos: cada correo enviado (real o simulado) queda registrado.
+        Event::listen(MessageSent::class, fn (MessageSent $e) => CorreoEnviado::registrarEnvio($e));
         Event::listen(Failed::class, fn (Failed $e) => Bitacora::registrar(
             'ingreso_fallido', 'sesion', null, 'Intento de ingreso fallido', $e->user,
             (string) ($e->credentials['usuario'] ?? $e->credentials['email'] ?? ''),
